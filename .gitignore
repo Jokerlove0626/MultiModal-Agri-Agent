@@ -1,0 +1,30 @@
+# 1. 绝密环境配置 (核心诉求：坚决不传)
+.env
+.env.example
+
+# 2. 包含隐私或测试脏代码的本地脚本
+scripts/
+
+# 3. 爬虫代码与原始数据 (根据需要，通常爬虫含敏感代理或写死的数据)
+scrapers/
+data/
+
+# 4. Python 运行时产生的垃圾缓存 (标准规范)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 5. 虚拟环境 (如果你在项目里建了 venv)
+env/
+venv/
+.venv/
+env.bak/
+venv.bak/
+
+# 6. 编辑器及系统配置
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
