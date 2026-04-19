@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html class="light" lang="zh"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DeepAgriculture - AI Chat</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-high": "#dceec7",
+                      "surface-container": "#e2f4cc",
+                      "background": "#efffdb",
+                      "tertiary-container": "#926500",
+                      "secondary-fixed": "#d6e3ff",
+                      "on-tertiary-fixed-variant": "#604100",
+                      "secondary-fixed-dim": "#a9c7ff",
+                      "inverse-primary": "#88d982",
+                      "on-secondary-container": "#003670",
+                      "primary-container": "#2e7d32",
+                      "surface-bright": "#efffdb",
+                      "on-primary-fixed-variant": "#005312",
+                      "tertiary-fixed-dim": "#ffba38",
+                      "on-primary-container": "#cbffc2",
+                      "surface": "#efffdb",
+                      "on-surface": "#121f07",
+                      "inverse-on-surface": "#e4f7cf",
+                      "tertiary": "#734e00",
+                      "inverse-surface": "#26351a",
+                      "on-secondary-fixed-variant": "#00468c",
+                      "on-background": "#121f07",
+                      "on-error": "#ffffff",
+                      "on-surface-variant": "#40493d",
+                      "secondary-container": "#64a1ff",
+                      "on-secondary-fixed": "#001b3d",
+                      "on-error-container": "#93000a",
+                      "surface-variant": "#d6e9c1",
+                      "primary-fixed": "#a3f69c",
+                      "on-secondary": "#ffffff",
+                      "primary": "#0d631b",
+                      "error": "#ba1a1a",
+                      "primary-fixed-dim": "#88d982",
+                      "error-container": "#ffdad6",
+                      "on-primary-fixed": "#002204",
+                      "surface-container-highest": "#d6e9c1",
+                      "on-tertiary": "#ffffff",
+                      "secondary": "#005db7",
+                      "tertiary-fixed": "#ffdeac",
+                      "surface-tint": "#1b6d24",
+                      "surface-container-lowest": "#ffffff",
+                      "outline-variant": "#bfcaba",
+                      "on-tertiary-fixed": "#281900",
+                      "surface-dim": "#cee0b9",
+                      "on-primary": "#ffffff",
+                      "outline": "#707a6c",
+                      "surface-container-low": "#e7fad2",
+                      "on-tertiary-container": "#ffefda"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {},
+              "fontFamily": {
+                      "headline": [
+                              "Space Grotesk"
+                      ],
+                      "body": [
+                              "Inter"
+                      ],
+                      "label": [
+                              "Inter"
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+</head>
+<body class="bg-background text-on-surface font-body h-screen flex overflow-hidden selection:bg-primary/20">
+<!-- SideNavBar Component from JSON -->
+<nav class="bg-white dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-200 font-['Inter'] text-sm antialiased h-screen w-72 flex-col hidden md:flex border-r border-emerald-900/5 fixed left-0 top-0 p-4 flex flex-col gap-2 z-20">
+<!-- Header -->
+<div class="px-4 py-6 mb-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center shrink-0 shadow-[0_4px_20px_rgba(13,99,27,0.15)]">
+<span class="material-symbols-outlined text-on-primary-container text-xl" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+<div>
+<h1 class="font-['Space_Grotesk'] font-bold text-emerald-900 dark:text-emerald-50 text-base leading-tight">Living Laboratory</h1>
+<p class="text-xs text-emerald-700/70 mt-0.5">AI Diagnostic Engine</p>
+</div>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="flex-1 flex flex-col gap-1 overflow-y-auto pr-2" style="scrollbar-width: thin;">
+<!-- Active Tab: New Diagnosis -->
+<button class="w-full flex items-center gap-3 px-4 py-3 bg-emerald-800/10 dark:bg-emerald-100/10 text-emerald-900 dark:text-emerald-50 rounded-xl font-medium hover:translate-x-1 transition-all duration-200 damping-spring-effect">
+<span class="material-symbols-outlined text-[20px]">add_box</span>
+<span>新建诊断</span>
+</button>
+<!-- Inactive Tabs -->
+<button class="w-full flex items-center gap-3 px-4 py-3 text-emerald-700/80 dark:text-emerald-400/80 hover:bg-emerald-800/5 rounded-xl hover:translate-x-1 transition-all duration-200 damping-spring-effect">
+<span class="material-symbols-outlined text-[20px]">potted_plant</span>
+<span>番茄晚疫病诊断会话</span>
+</button>
+<button class="w-full flex items-center gap-3 px-4 py-3 text-emerald-700/80 dark:text-emerald-400/80 hover:bg-emerald-800/5 rounded-xl hover:translate-x-1 transition-all duration-200 damping-spring-effect">
+<span class="material-symbols-outlined text-[20px]">analytics</span>
+<span>小麦产量分析</span>
+</button>
+<button class="w-full flex items-center gap-3 px-4 py-3 text-emerald-700/80 dark:text-emerald-400/80 hover:bg-emerald-800/5 rounded-xl hover:translate-x-1 transition-all duration-200 damping-spring-effect">
+<span class="material-symbols-outlined text-[20px]">science</span>
+<span>土壤养分记录</span>
+</button>
+<button class="w-full flex items-center gap-3 px-4 py-3 text-emerald-700/80 dark:text-emerald-400/80 hover:bg-emerald-800/5 rounded-xl hover:translate-x-1 transition-all duration-200 damping-spring-effect">
+<span class="material-symbols-outlined text-[20px]">history</span>
+<span>存档报告</span>
+</button>
+</div>
+<!-- Spacer -->
+<div class="mt-auto"></div>
+<!-- CTA Area -->
+<!-- Footer Links -->
+<div class="flex flex-col gap-1 border-t border-outline-variant/15 pt-4 px-2">
+<button class="w-full flex items-center gap-3 px-4 py-2 text-emerald-700/80 dark:text-emerald-400/80 hover:bg-emerald-800/5 rounded-xl hover:translate-x-1 transition-all duration-200 damping-spring-effect text-xs">
+<span class="material-symbols-outlined text-[18px]">description</span>
+<span>文档中心</span>
+</button>
+<button class="w-full flex items-center gap-3 px-4 py-2 text-emerald-700/80 dark:text-emerald-400/80 hover:bg-emerald-800/5 rounded-xl hover:translate-x-1 transition-all duration-200 damping-spring-effect text-xs">
+<span class="material-symbols-outlined text-[18px]">help_outline</span>
+<span>技术支持</span>
+</button>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 ml-0 md:ml-72 flex flex-col relative bg-[#e8f5e9]">
+<!-- Subtle Tech Grid Background (Simulated via very faint radial gradients to maintain 'breathing space') -->
+<div class="absolute inset-0 pointer-events-none opacity-20" style="background-image: radial-gradient(circle at 2px 2px, var(--tw-colors-primary-container) 1px, transparent 0); background-size: 40px 40px;"></div>
+<!-- Top Context Header -->
+<header class="px-8 py-5 flex items-center justify-between z-10 sticky top-0 bg-[#e8f5e9]/80 backdrop-blur-md">
+<div>
+<h2 class="font-headline font-medium text-title-lg text-on-surface">开启新诊断</h2>
+<p class="text-sm text-on-surface-variant mt-1">上传病害照片或描述作物受灾情况</p>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-surface-container-low transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</header>
+<!-- Chat Stream -->
+<div class="flex-1 overflow-y-auto px-4 md:px-12 lg:px-24 pb-48 pt-8 flex flex-col gap-10 z-10 w-full max-w-5xl mx-auto scroll-smooth">
+<!-- User Message -->
+<div class="flex flex-col items-end w-full max-w-3xl ml-auto gap-2 opacity-0 animate-[fadeIn_0.5s_ease-out_forwards] relative z-10">
+<div class="flex items-center gap-2 mb-1 px-1">
+<span class="text-xs font-medium text-on-surface-variant">番茄</span>
+<span class="w-1.5 h-1.5 rounded-full bg-outline-variant/50"></span>
+<span class="text-xs text-on-surface-variant">我</span>
+</div>
+<div class="bg-white rounded-2xl rounded-tr-sm p-5 text-on-surface shadow-[0_4px_20px_rgba(18,31,7,0.03)] flex flex-col gap-4 w-full md:w-auto">
+<p class="text-body-lg leading-relaxed">我今天早上注意到我的番茄植株下部叶片上有这些深色的同心圆环。由于最近比较潮湿，它们似乎正沿着茎部快速蔓延。我应该担心吗？</p>
+<div class="relative w-48 h-32 rounded-lg overflow-hidden border border-outline-variant/15 group">
+<img alt="close up of a diseased tomato leaf showing dark circular concentric rings and yellowing edges" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="close up of a diseased tomato leaf showing dark circular concentric rings and yellowing edges against a blurred field background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJd6t5Cam2BRtmknMX9AkV0QL2mH54GbLmEAH3hMjOEC6t84n1ucILTsvY7GUBEc_hecbBUwjvQS3bb2BWDBebLwSWnlUHCuTIOkLWYEmS81paVB5lELdaUcM7wZ5ZnVtDexJgQakvunt7uQ-QoNLk2ARia18FJhhX7iHG1DvlF2vqxQ1jHWyRrsEQkeT0Zix8Mo4z8bcyUSIOV4duYIuOslmE0QMgUnVsyz2G4FbZenim943qEmI_jwnSJesriLEbsR1JEEjkl70"/>
+</div>
+</div>
+</div>
+<!-- AI Message 1 -->
+<div class="flex items-start gap-4 w-full max-w-3xl mr-auto opacity-0 animate-[fadeIn_0.5s_ease-out_0.2s_forwards] relative z-10">
+<!-- Avatar -->
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0 mt-1 shadow-[0_4px_16px_rgba(13,99,27,0.2)]">
+<span class="material-symbols-outlined text-on-primary text-[20px]" style="font-variation-settings: 'FILL' 1;">psychiatry</span>
+</div>
+<div class="flex-1 flex flex-col gap-1">
+<div class="flex items-center gap-2 mb-1 px-1">
+<span class="text-xs font-medium text-primary">智农大夫 (DeepAgriculture AI)</span>
+</div>
+<div class="bg-white p-5 rounded-2xl rounded-tl-sm shadow-[0_4px_20px_rgba(18,31,7,0.03)] text-on-surface text-body-lg leading-relaxed space-y-4">
+<p>根据您的视觉证据和关于在潮湿条件下症状向上蔓延的描述，这极有可能是<strong>番茄早疫病</strong> (<em>Alternaria solani</em>)。</p>
+<div class="bg-surface-container-low/50 rounded-xl p-4 border border-outline-variant/15 mt-4">
+<h4 class="font-headline font-medium text-base mb-2 text-primary-container">关键特征确认：</h4>
+<ul class="list-disc list-inside space-y-1 text-sm text-on-surface-variant">
+<li>深色坏死病斑内有同心圆环（靶心图案）。</li>
+<li>从较老、较低的叶片开始发病。</li>
+<li>初侵染部位周围有褪绿（发黄）的晕圈。</li>
+</ul>
+</div>
+<div class="mt-6">
+<h4 class="font-headline font-bold text-lg mb-3 text-on-surface">推荐防治措施</h4>
+<div class="space-y-4 pl-1">
+<!-- Measure 1 -->
+<div class="flex gap-3 items-start">
+<div class="w-6 h-6 rounded-full bg-surface-container-high flex items-center justify-center text-xs font-bold text-primary shrink-0 mt-0.5">1</div>
+<div>
+<strong class="text-on-surface font-medium block">修剪病叶</strong>
+<span class="text-on-surface-variant text-sm">立即清除并销毁受影响的下部叶片。切勿将受感染的植物材料用于堆肥。确保植株之间有足够的间距，以最大限度地保持空气流通。</span>
+</div>
+</div>
+<!-- Measure 2 -->
+<div class="flex gap-3 items-start">
+<div class="w-6 h-6 rounded-full bg-surface-container-high flex items-center justify-center text-xs font-bold text-primary shrink-0 mt-0.5">2</div>
+<div>
+<strong class="text-on-surface font-medium block">药剂干预</strong>
+<span class="text-on-surface-variant text-sm">施用含有辛酸铜或百菌清的针对性杀菌剂。在清晨施用，重点确保叶片背面的彻底覆盖。</span>
+</div>
+</div>
+<!-- Measure 3 -->
+<div class="flex gap-3 items-start">
+<div class="w-6 h-6 rounded-full bg-surface-container-high flex items-center justify-center text-xs font-bold text-primary shrink-0 mt-0.5">3</div>
+<div>
+<strong class="text-on-surface font-medium block">水分管理</strong>
+<span class="text-on-surface-variant text-sm">如果可能，改用滴灌。避免顶置浇水，以保持叶面干燥。</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- AI Message 2 (Simulating active generation) -->
+<div class="flex items-start gap-4 w-full max-w-3xl mr-auto opacity-0 animate-[fadeIn_0.5s_ease-out_0.4s_forwards] relative z-10">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0 mt-1 shadow-[0_4px_16px_rgba(13,99,27,0.2)]">
+<span class="material-symbols-outlined text-on-primary text-[20px]" style="font-variation-settings: 'FILL' 1;">psychiatry</span>
+</div>
+<div class="flex-1 flex flex-col gap-1">
+<div class="bg-white p-4 rounded-2xl rounded-tl-sm shadow-[0_4px_20px_rgba(18,31,7,0.03)] text-on-surface text-body-lg leading-relaxed flex items-center gap-2 mt-2">
+<span>正在分析当地气候数据以制定预防计划</span>
+<div class="w-2.5 h-4 bg-secondary rounded-[1px] animate-[pulse_1s_ease-in-out_infinite]" style="box-shadow: 0 0 10px rgba(0, 93, 183, 0.4);"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Input Hub (Fixed Bottom) -->
+<div class="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-4xl px-4 z-20">
+<!-- Glassmorphism Container -->
+<div class="bg-white backdrop-blur-[20px] rounded-[1.5rem] p-3 shadow-[0_8px_40px_rgba(18,31,7,0.06)] border border-outline-variant/10 flex flex-col gap-3 transition-all duration-300 hover:shadow-[0_12px_48px_rgba(18,31,7,0.08)]">
+<!-- Dynamic Image Preview Area (Simulated Active) -->
+<div class="flex items-end gap-4 px-2 pt-2">
+<div class="relative w-16 h-16 rounded-lg overflow-hidden shadow-sm shrink-0">
+<img alt="close up of a healthy green crop leaf" class="w-full h-full object-cover" data-alt="close up of a healthy vibrant green crop leaf with morning dew drops" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0iHk2IbC5zCyhg16DZU7COtprSRv-MwGTcBlfrdHHW3K0Q-Z1GU2Xc2aGE4c4cckIA9eMdBGsmjs1jnFq0ku3ME6b2QmrSxLuKBV58izhagUaSrX3uEQM45Svp0zh3HfsaDPm6-fVkLsEjlEXId_lOpATDSdpsiiGqKANqPjRuYfyIJCxxJ7jKGUQHvSaW0AhMI5pYEVdAu8XHifxQ9S9oEgOik0GRwr53BHDcbi9XRYZlLwPwbZFoODAO1hAjqEwLILOLIeFlco"/>
+<button class="absolute top-1 right-1 w-5 h-5 bg-surface/90 rounded-full flex items-center justify-center text-on-surface hover:bg-error hover:text-on-error transition-colors backdrop-blur-sm" title="移除图片">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</div>
+<!-- Form Input: Understated Elegance -->
+<div class="flex-1 max-w-xs relative group">
+<input class="w-full bg-surface-variant text-on-surface text-sm px-4 pt-4 pb-2 rounded-t-md border-none focus:ring-0 focus:outline-none transition-colors group-hover:bg-surface-bright peer placeholder:text-transparent" placeholder="番茄" type="text" value="番茄"/>
+<label class="absolute left-4 top-1.5 text-[10px] font-medium text-primary transition-all peer-placeholder-shown:text-sm peer-placeholder-shown:top-3 peer-placeholder-shown:text-on-surface-variant peer-focus:top-1.5 peer-focus:text-[10px] peer-focus:text-primary">作物种类 (选填)</label>
+<div class="absolute bottom-0 left-0 w-full h-[2px] bg-primary scale-x-100 transition-transform origin-left"></div>
+</div>
+</div>
+<!-- Input Row -->
+<div class="flex items-end gap-2 bg-white rounded-xl pr-2 pl-1 py-1">
+<!-- Toolbar Left -->
+<div class="flex items-center shrink-0 mb-1">
+<button class="p-2.5 rounded-full text-primary hover:bg-surface-variant transition-colors flex items-center justify-center tooltip-trigger" title="上传图片">
+<span class="material-symbols-outlined text-[22px]">image</span>
+</button>
+<button class="p-2.5 rounded-full text-on-surface-variant hover:bg-surface-variant hover:text-on-surface transition-colors flex items-center justify-center hidden sm:flex" title="语音输入">
+<span class="material-symbols-outlined text-[22px]">mic</span>
+</button>
+</div>
+<!-- Textarea -->
+<textarea class="flex-1 bg-transparent border-none resize-none outline-none max-h-32 min-h-[44px] text-on-surface placeholder:text-on-surface-variant/60 py-3 px-2 text-body-lg focus:ring-0" placeholder="描述作物症状、土壤情况或询问防治方案..." rows="1"></textarea>
+<!-- Send Button -->
+<button class="w-11 h-11 mb-0.5 rounded-full bg-gradient-to-br from-primary to-primary-container text-on-primary flex items-center justify-center shrink-0 shadow-[0_4px_12px_rgba(13,99,27,0.2)] hover:shadow-[0_6px_16px_rgba(13,99,27,0.3)] transition-all duration-400 group" style="transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1);" title="发送">
+<span class="material-symbols-outlined text-[20px] ml-0.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">send</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<style>
+        /* Minimal custom CSS for things Tailwind doesn't handle natively perfectly */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Damping Spring Effect for generic interactions requested in JSON */
+        .damping-spring-effect:active {
+            transform: scale(0.97);
+            transition: transform 0.1s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+    </style>
+</body></html>

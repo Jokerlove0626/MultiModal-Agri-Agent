@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>智农大夫 - 流式输出测试</title>
+    <style>
+        body { font-family: 'Microsoft YaHei', sans-serif; background-color: #f4f4f9; padding: 50px; }
+        #chat-box { 
+            background: white; border-radius: 10px; padding: 20px; 
+            min-height: 200px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+            line-height: 1.6; font-size: 16px; white-space: pre-wrap;
+        }
+        button { padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;}
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+
+    <h2>🤖 智农大夫 (SSE 流式打字机测试)</h2>
+    <button onclick="startChat()">发送求助：香蕉长白毛了怎么办？</button>
+    <br><br>
+    <div id="chat-box">等待提问...</div>
+
+    <script>
+        async function startChat() {
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML = "<em>思考中...</em><br>";
+
+            try {
+                // 1. 发起 Fetch 请求
+                const response = await fetch('http://127.0.0.1:8000/api/chat/stream', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: "香蕉冠腐病" })
+                });
+
+                // 2. 极其关键：获取流式读取器
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+
+                // 3. 开始死循环接水滴
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break; // 后端发完，结束
+
+                    // 解码二进制数据
+                    const chunkStr = decoder.decode(value);
+                    
+                    // 解析 SSE 格式 (切分多个 data: 块)
+                    const lines = chunkStr.split('\n\n');
+                    for (let line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const text = line.replace('data: ', '');
+                            if (text === '[DONE]') break; // 接收到结束信号
+                            
+                            // 拼接到屏幕上！
+                            chatBox.innerHTML += text;
+                            
+                            // 让滚动条始终保持在最底部
+                            window.scrollTo(0, document.body.scrollHeight);
+                        }
+                    }
+                }
+            } catch (error) {
+                chatBox.innerHTML += `<br><span style="color:red">请求出错了: ${error}</span>`;
+            }
+        }
+    </script>
+
+</body>
+</html>

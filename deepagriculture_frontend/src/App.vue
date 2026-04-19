@@ -1,9 +1,15 @@
 <script setup>
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+
 import TopNav from './components/TopNav.vue';
+
+const route = useRoute();
+const showTopNav = computed(() => route.name !== 'chat');
 </script>
 
 <template>
-  <TopNav />
+  <TopNav v-if="showTopNav" />
   <router-view />
 </template>
 

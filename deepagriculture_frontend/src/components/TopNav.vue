@@ -98,11 +98,12 @@ onUnmounted(() => {
 					<span class="material-symbols-outlined">language</span>
 				</button>
 			</div>
-			<button
+			<router-link
+				to="/chat"
 				class="bg-primary text-white px-6 py-2.5 rounded-full font-medium hover:shadow-glow hover:scale-105 transition-all duration-400 ease-[cubic-bezier(0.25,1,0.5,1)]"
 			>
 				进入实验室
-			</button>
+			</router-link>
 		</div>
 	</nav>
 </template>
