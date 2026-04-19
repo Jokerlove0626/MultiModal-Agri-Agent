@@ -12,7 +12,7 @@ function joinUrl(baseUrl, path) {
 	return `${trimmedBaseUrl}${trimmedPath}`;
 }
 
-export async function postChat({ query, sessionId } = {}) {
+export async function postChat({ query, sessionId, province, city } = {}) {
 	const baseUrl = getApiBaseUrl();
 	const url = joinUrl(baseUrl, "/api/chat/");
 
@@ -24,6 +24,8 @@ export async function postChat({ query, sessionId } = {}) {
 		body: JSON.stringify({
 			query,
 			session_id: sessionId || undefined,
+			province: province || undefined,
+			city: city || undefined,
 		}),
 	});
 

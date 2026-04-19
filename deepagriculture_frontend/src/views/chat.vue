@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref } from "vue";
-import { postChatStream, postIdentify } from "@/services/chatApi";
+import { postChat, postIdentify } from "@/services/chatApi";
 
 function getOrCreateSessionId() {
   const key = "deepagriculture.session_id";
@@ -145,34 +145,34 @@ async function send() {
         text: answer,
       });
     } else {
-      const controller = new AbortController();
-      activeStreamController.value = controller;
-
-      let pendingScroll = false;
-      const scheduleScroll = () => {
-        if (pendingScroll) return;
-        pendingScroll = true;
-        requestAnimationFrame(() => {
-          pendingScroll = false;
-          scrollToBottom();
-        });
-      };
-
-      await postChatStream({
+      // 使用普通 POST 请求获取 JSON 响应
+      const payload = await postChat({
         query: userText,
         sessionId: sessionId.value,
-        signal: controller.signal,
-        onChunk: (chunk) => {
-          const msg = messages.value.find((m) => m.id === loadingId);
-          if (!msg) return;
-          msg.text = (msg.text || "") + chunk;
-          scheduleScroll();
-        },
+        province: "广东省", // 模拟或实际获取的前端省份
+        city: "广州市"       // 模拟或实际获取的前端城市
       });
 
+      const answer =
+        payload == null
+          ? ""
+          : typeof payload === "string"
+            ? payload
+            : typeof payload.answer === "string"
+              ? payload.answer
+              : typeof payload.data?.answer === "string"
+                ? payload.data.answer
+                : typeof payload.message === "string"
+                  ? payload.message
+                  : typeof payload.detail === "string"
+                    ? payload.detail
+                    : JSON.stringify(payload, null, 2);
+
       const msg = messages.value.find((m) => m.id === loadingId);
-      if (msg) msg.loading = false;
-      activeStreamController.value = null;
+      if (msg) {
+        msg.text = answer || "对不起，我暂时无法回答。";
+        msg.loading = false;
+      }
     }
   } catch (err) {
     if (err?.name === "AbortError") {
