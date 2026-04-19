@@ -113,9 +113,12 @@ export async function postIdentify({
 
 	const formData = new FormData();
 	formData.append("file", file);
-	if (cropName) formData.append("crop_name", cropName);
-	if (userText) formData.append("user_text", userText);
-	if (sessionId) formData.append("session_id", sessionId);
+	if (cropName !== undefined && cropName !== null)
+		formData.append("crop_name", cropName);
+	if (userText !== undefined && userText !== null)
+		formData.append("user_text", userText);
+	if (sessionId !== undefined && sessionId !== null)
+		formData.append("session_id", sessionId);
 
 	const resp = await fetch(url, {
 		method: "POST",

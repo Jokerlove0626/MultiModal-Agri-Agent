@@ -121,8 +121,8 @@ async function send() {
     if (file) {
       const payload = await postIdentify({
         file,
-        cropName: cropNameSnapshot || undefined,
-        userText: userText || undefined,
+        cropName: cropNameSnapshot, // 直接传，即使是空字符串后端也能收到
+        userText: userText,         // 直接传输入框文本，即使空也会以空字符串发送
         sessionId: sessionId.value,
       });
 
