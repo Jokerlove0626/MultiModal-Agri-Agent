@@ -61,7 +61,10 @@ function resetChat() {
 }
 
 function setFile(file) {
-  if (selectedFilePreviewUrl.value) URL.revokeObjectURL(selectedFilePreviewUrl.value);
+  // 如果不是置空，清理旧的预览以免内存泄漏
+  if (selectedFilePreviewUrl.value && file) {
+    URL.revokeObjectURL(selectedFilePreviewUrl.value);
+  }
   selectedFile.value = file || null;
   selectedFilePreviewUrl.value = file ? URL.createObjectURL(file) : "";
 }
@@ -73,6 +76,9 @@ function onPickFile(e) {
 }
 
 function removeFile() {
+  if (selectedFilePreviewUrl.value) {
+    URL.revokeObjectURL(selectedFilePreviewUrl.value);
+  }
   setFile(null);
 }
 
@@ -105,7 +111,9 @@ async function send() {
   });
 
   queryText.value = "";
-  setFile(null);
+  // 仅清空文件变量，但不回收内存 URL（因为刚才加入到消息列表的气泡还在使用该 URL 显示图片）
+  selectedFile.value = null;
+  selectedFilePreviewUrl.value = "";
 
   const loadingId = crypto?.randomUUID ? crypto.randomUUID() : `loading-${Date.now()}`;
   messages.value.push({
