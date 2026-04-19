@@ -1,6 +1,7 @@
 import os
 from openai import AsyncOpenAI
 
+
 class LLMClient:
     def __init__(self):
         self.client = AsyncOpenAI(
@@ -9,12 +10,34 @@ class LLMClient:
         )
         self.model_name = os.getenv("LLM_MODEL_NAME", "qwen-turbo")
 
+    async def chat_vision_stream(self, sys_prompt: str, base64_image: str):
+        """流式调用多模态视觉大模型，逐步 yield 增量内容"""
+        stream_response = await self.client.chat.completions.create(
+            model="qwen-vl-max",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": sys_prompt},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+                    ]
+                }
+            ],
+            stream=True
+        )
+        async for chunk in stream_response:
+            # OpenAI/阿里Qwen兼容接口，增量内容在 choices[0].delta.content
+            delta = chunk.choices[0].delta.content if chunk.choices[0].delta else ""
+            if delta:
+                yield delta
+
     async def generate_response(self, messages):
         response = await self.client.chat.completions.create(
             model=self.model_name, # 👈 使用动态名字
             messages=messages
         )
         return response
+
     async def chat_text(self, messages: list, temperature: float = 0.3) -> str:
         """调用纯文本大模型"""
         response = await self.client.chat.completions.create(

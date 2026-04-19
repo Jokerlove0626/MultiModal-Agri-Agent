@@ -44,28 +44,26 @@ async def identify_image_endpoint(
     crop_name: str = Form(""),
     user_text: str = Form(""),
     session_id: str = Form("default_session"),
-    province: str = Form("未知"), # 👈 新增
-    city: str = Form("未知")      # 👈 新增
+    province: str = Form("未知"),
+    city: str = Form("未知")
 ):
-    """视觉识别与多模态问答接口"""
+    """视觉识别与多模态问答接口（流式SSE）"""
     engine = req.app.state.rag_engine
     if not engine:
         raise HTTPException(status_code=500, detail="AI引擎未就绪")
     try:
         contents = await file.read()
         base64_image = base64.b64encode(contents).decode("utf-8")
-        
-        result = await engine.analyze_image_and_answer(
-            base64_image=base64_image, 
-            crop_name=crop_name,
-            user_text=user_text,
-            session_id=session_id,
-            province=province, # 👈 传给底层
-            city=city        # 👈 传给底层
+        # 直接用流式生成器包装
+        return StreamingResponse(
+            engine.analyze_image_and_answer(
+                base64_image=base64_image,
+                crop_name=crop_name,
+                user_text=user_text,
+                session_id=session_id
+            ),
+            media_type="text/event-stream"
         )
-        if result.get("status") == "error":
-            raise HTTPException(status_code=400, detail=result.get("message"))
-        return result
     except Exception as e:
         import traceback
         traceback.print_exc()

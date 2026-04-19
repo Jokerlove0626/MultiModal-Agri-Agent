@@ -187,8 +187,8 @@ class RAGOrchestrator:
         self.memory.save_interaction(session_id, user_query, answer)
         return answer
 
-    async def analyze_image_and_answer(self, base64_image: str, crop_name: str = "", user_text: str = "", session_id: str = "default_session") -> dict:
-        """核心视觉链路编排"""
+    async def analyze_image_and_answer(self, base64_image: str, crop_name: str = "", user_text: str = "", session_id: str = "default_session"):
+        """核心视觉链路编排（流式逐字输出）"""
         try:
             history_context = "无"
             if self.memory.has_history(session_id):
@@ -206,15 +206,22 @@ class RAGOrchestrator:
 【任务说明】：请仔细观察图片并结合记录诊断。
 必须且只能输出单行格式：“[作物名称][你猜测的病害名称] [核心症状描述]”。如果非植物，回复“非植物”。"""
 
-            symptom = await self.llm.chat_vision(sys_prompt, base64_image)
+            # 1. 视觉识别流式输出
+            symptom = ""
+            async for delta in self.llm.chat_vision_stream(sys_prompt, base64_image):
+                symptom += delta
+                yield f"data: {{\"stage\": \"vision\", \"delta\": {repr(delta)}, \"symptom\": {repr(symptom)} }}\n\n"
 
             if "非植物" in symptom:
-                return {"status": "error", "message": "图片看起来不像植物，请上传作物病害图片。"}
+                yield f"data: {{\"status\": \"error\", \"message\": \"图片看起来不像植物，请上传作物病害图片。\"}}\n\n"
+                return
 
+            # 2. 文本RAG流式输出（如支持流式，可改为 async for，否则阶段性yield）
+            yield f"data: {{\"stage\": \"vision_done\", \"symptom\": {repr(symptom)} }}\n\n"
             final_answer = await self.generate_answer(symptom, session_id=session_id, source="vision")
-            return {"status": "success", "extracted_symptom": symptom, "answer": final_answer}
+            yield f"data: {{\"stage\": \"rag_done\", \"answer\": {repr(final_answer)} }}\n\n"
         except Exception as e:
-            return {"status": "error", "message": f"视觉模型错误: {str(e)}"}
+            yield f"data: {{\"status\": \"error\", \"message\": \"视觉模型错误: {str(e)}\"}}\n\n"
 
     def add_new_disease(self, disease_name: str, symptom: str, treatment: str) -> bool:
         """知识入库双写编排"""
