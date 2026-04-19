@@ -7,6 +7,10 @@ from app.services.llm_client import LLMClient
 from app.services.graph_db import GraphDBClient
 from app.services.vector_db import VectorDBClient
 
+import datetime
+from app.db.session import SessionLocal # 👈 引入水龙头
+from app.db.models import PestRecord   # 👈 引入表模型
+
 class RAGOrchestrator:
     def __init__(self):
         print("⏳ 正在唤醒四大底层兵种...")
@@ -25,7 +29,7 @@ class RAGOrchestrator:
             )
         else:
             print("⚠️ 警告：未检测到 DASHSCOPE_API_KEY，流式输出可能失败！")
-    async def generate_answer_stream(self, user_query: str, session_id: str = "default_session", source: str = "text"):
+    async def generate_answer_stream(self, user_query: str, session_id: str = "default_session", source: str = "text", province: str = "未知", city: str = "未知"):
         """核心文本链路编排 (SSE 流式输出版)"""
         
         # 为了保证 SSE 格式，遇到提前拦截拦截时，我们需要用 yield 吐出文字并结束
@@ -79,6 +83,8 @@ class RAGOrchestrator:
                 yield "data: [DONE]\n\n"
                 return
                 
+            self._log_pest_occurrence(matched_disease, province, city)
+
             context_str = f"【诊断】: {matched_disease}\n【摘要】: {graph_data['summary']}\n【农业】: {graph_data['agricultural']}\n【生物】: {graph_data['biological']}\n【化学】: {graph_data['chemicals']}"
 
             system_prompt = """你是一位严谨的农业植保专家。
@@ -126,7 +132,7 @@ class RAGOrchestrator:
         yield "data: [DONE]\n\n"
 
 
-    async def generate_answer(self, user_query: str, session_id: str = "default_session", source: str = "text") -> str:
+    async def generate_answer(self, user_query: str, session_id: str = "default_session", source: str = "text",province: str = "未知", city: str = "未知") -> str:
         """核心文本链路编排"""
         # 1. 拿记忆
         recent_history = self.memory.get_recent_history(session_id)
@@ -160,6 +166,8 @@ class RAGOrchestrator:
             if not graph_data:
                 return f"识别为【{matched_disease}】，但无详细处方。"
             context_str = f"【诊断】: {matched_disease}\n【摘要】: {graph_data['summary']}\n【农业】: {graph_data['agricultural']}\n【生物】: {graph_data['biological']}\n【化学】: {graph_data['chemicals']}"
+
+            self._log_pest_occurrence(matched_disease, province, city)
 
             system_prompt = """你是一位严谨的农业植保专家。
 【最高限制指令】：
@@ -297,4 +305,29 @@ class RAGOrchestrator:
             traceback.print_exc()
             # 如果报错，也坚决不能返回 null，返回一个空的规范结构
             return {"nodes": [], "links": []}
+
+    def _log_pest_occurrence(self, disease_name: str, province: str, city: str):
+        """静默埋点：将确诊的病害写入 MySQL，供大屏统计"""
+        # 如果是无效地点或无效病害，就不记录（防止脏数据污染大屏）
+        if province == "未知" or "追问" in disease_name or "未知" in disease_name:
+            return
+
+        # 极其规范的数据库操作：随用随开，用完即焚
+        db = SessionLocal()
+        try:
+            record = PestRecord(
+                province=province,
+                city=city,
+                pest_name=disease_name,
+                report_date=datetime.date.today(),
+                severity=3 # 默认严重程度，或者你可以让 LLM 动态打分
+            )
+            db.add(record)
+            db.commit() # 提交入库！
+            print(f"📍 [大屏埋点成功] 记录到 {province}{city} 发生 {disease_name}")
+        except Exception as e:
+            db.rollback()
+            print(f"🚨 [大屏埋点失败] {e}")
+        finally:
+            db.close() # 极其关键：归还连接，防止连接池爆炸
 

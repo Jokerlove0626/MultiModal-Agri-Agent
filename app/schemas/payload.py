@@ -9,3 +9,10 @@ class KnowledgeAddRequest(BaseModel):
     symptom: str
     treatment: str
     admin_token: str
+
+class ChatRequest(BaseModel):
+    query: str
+    session_id: str = "default_session"
+    # 👇 新增地理位置字段，默认是未知
+    province: str = "未知" 
+    city: str = "未知"

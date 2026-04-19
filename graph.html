@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智农大夫 - 知识图谱大屏</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; display: flex; font-family: 'Microsoft YaHei', sans-serif; background-color: #0f1c2d; color: white; }
+        /* 左侧：图谱主屏幕 */
+        #graph-container { width: 75vw; height: 100vh; }
+        /* 右侧：详情面板 */
+        #detail-panel { 
+            width: 25vw; height: 100vh; background-color: #1a2942; 
+            padding: 20px; box-sizing: border-box; border-left: 2px solid #2e4369;
+            overflow-y: auto;
+        }
+        h2 { color: #00ffcc; border-bottom: 1px solid #00ffcc; padding-bottom: 10px;}
+        .card { background: #263859; padding: 15px; border-radius: 8px; margin-bottom: 15px; line-height: 1.6;}
+        .tag { display: inline-block; padding: 2px 8px; background: #00ffcc; color: #000; border-radius: 4px; font-weight: bold; margin-bottom: 10px;}
+    </style>
+</head>
+<body>
+
+    <div id="graph-container"></div>
+
+    <div id="detail-panel">
+        <h2>🔬 节点详情档案</h2>
+        <div id="info-content">
+            <p style="color: #8899a6; text-align: center; margin-top: 50px;">
+                👆 请在左侧星空图中<br>点击一个【病害节点】查看处方详情
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // 1. 初始化 ECharts 实例
+        const myChart = echarts.init(document.getElementById('graph-container'));
+        
+        // 显示加载动画 (极具科技感)
+        myChart.showLoading({ text: '链接底层知识库...', color: '#00ffcc', textColor: '#fff', maskColor: 'rgba(15, 28, 45, 0.8)' });
+
+        // 2. 发起请求，拉取你后端的极其规整的图谱数据
+        fetch('http://127.0.0.1:8000/api/graph/visualize')
+            .then(response => response.json())
+            .then(res => {
+                myChart.hideLoading();
+                
+                if (res.status !== 'success' || !res.data) {
+                    alert('获取图谱数据失败，请检查后端引擎是否启动！');
+                    return;
+                }
+
+                const graphData = res.data;
+
+                // 3. 配置 ECharts (大厂级大屏配置)
+                const option = {
+                    title: {
+                        text: '🌾 智农大夫 - 农作物病害全景关系图',
+                        subtext: `共加载 ${graphData.nodes.length} 个节点，${graphData.links.length} 条关联规则`,
+                        top: 'bottom', left: 'right',
+                        textStyle: { color: '#fff' }
+                    },
+                    tooltip: { formatter: '{b}' }, // 鼠标悬浮显示名字
+                    legend: [{
+                        data: ['农作物', '病害'], // 图例
+                        textStyle: { color: '#fff' }
+                    }],
+                    animationDurationUpdate: 1500,
+                    animationEasingUpdate: 'quinticInOut',
+                    series: [{
+                        type: 'graph',
+                        layout: 'force', // 核心：使用力引导布局！
+                        data: graphData.nodes,
+                        links: graphData.links,
+                        categories: [
+                            { name: '农作物', itemStyle: { color: '#4CAF50' } }, // 绿色代表作物
+                            { name: '病害', itemStyle: { color: '#FF5722' } }    // 橙色代表病害
+                        ],
+                        roam: true, // 允许鼠标缩放和平移
+                        label: {
+                            show: true,
+                            position: 'right',
+                            formatter: '{b}', // 显示节点 name
+                            color: '#fff'
+                        },
+                        force: {
+                            repulsion: 800,   // 节点之间的斥力（越大越散开）
+                            edgeLength: 150,  // 连线的长度
+                            gravity: 0.1      // 向中心靠拢的引力
+                        },
+                        lineStyle: {
+                            color: 'source',
+                            curveness: 0.3    // 让连线带一点优雅的弧度
+                        },
+                        emphasis: {
+                            focus: 'adjacency', // 极其帅气：鼠标悬浮时，高亮它和它的邻居，其他变暗！
+                            lineStyle: { width: 5 }
+                        }
+                    }]
+                };
+
+                // 将配置项绑定到图表上
+                myChart.setOption(option);
+
+                // 4. 监听节点点击事件 (实现与右侧详情面板的联动)
+                myChart.on('click', function (params) {
+                    if (params.dataType === 'node' && params.data.category === '病害') {
+                        const diseaseName = params.data.name;
+                        const detail = params.data.detail || {};
+                        
+                        const htmlPanel = `
+                            <h3>${diseaseName}</h3>
+                            <span class="tag">病害画像</span>
+                            <div class="card">
+                                <strong>📝 核心摘要:</strong><br>
+                                ${detail.summary || '暂无摘要数据'}
+                            </div>
+                            <span class="tag" style="background:#FF9800;">生物处方</span>
+                            <div class="card">
+                                ${detail.biological || '暂无生物防治方案'}
+                            </div>
+                            <span class="tag" style="background:#f44336;">化学处方</span>
+                            <div class="card">
+                                ${detail.chemical || '暂无化学防治方案'}
+                            </div>
+                        `;
+                        document.getElementById('info-content').innerHTML = htmlPanel;
+                    } else if (params.dataType === 'node' && params.data.category === '农作物') {
+                        document.getElementById('info-content').innerHTML = `
+                            <h3 style="color:#4CAF50;">🌾 ${params.data.name}</h3>
+                            <p>这是一个中心枢纽节点。请点击与之相连的橙色病害节点查看详细处方。</p>
+                        `;
+                    }
+                });
+            })
+            .catch(err => {
+                myChart.hideLoading();
+                console.error("请求报错:", err);
+                alert("请求失败，请按 F12 打开控制台查看原因！(可能是跨域拦截，或者后端没开)");
+            });
+
+        // 让图表跟随浏览器窗口大小自动响应
+        window.addEventListener('resize', function () {
+            myChart.resize();
+        });
+    </script>
+</body>
+</html>

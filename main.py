@@ -8,6 +8,14 @@ from dotenv import load_dotenv
 from app.api.router import api_router
 from app.services.orchestrator import RAGOrchestrator
 
+
+from app.db.session import engine, Base
+from app.db import models
+
+# 每次系统启动时，检查 MySQL 里有没有这些表，没有就自动建表！
+Base.metadata.create_all(bind=engine)
+
+
 load_dotenv()
 
 # 👇 2. 保留你极其优秀的生命周期管理机制

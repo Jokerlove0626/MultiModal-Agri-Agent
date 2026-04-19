@@ -16,7 +16,7 @@ async def chat_stream_endpoint(request: ChatRequest, req: Request):
     try:
         # 直接把引擎的流式生成器塞进 StreamingResponse！
         return StreamingResponse(
-            engine.generate_answer_stream(request.query, request.session_id),
+            engine.generate_answer_stream(request.query, request.session_id,province=request.province, city=request.city),
             media_type="text/event-stream"
         )
     except Exception as e:
@@ -43,7 +43,9 @@ async def identify_image_endpoint(
     file: UploadFile = File(...),
     crop_name: str = Form(""),
     user_text: str = Form(""),
-    session_id: str = Form("default_session")
+    session_id: str = Form("default_session"),
+    province: str = Form("未知"), # 👈 新增
+    city: str = Form("未知")      # 👈 新增
 ):
     """视觉识别与多模态问答接口"""
     engine = req.app.state.rag_engine
@@ -57,7 +59,9 @@ async def identify_image_endpoint(
             base64_image=base64_image, 
             crop_name=crop_name,
             user_text=user_text,
-            session_id=session_id
+            session_id=session_id,
+            province=province, # 👈 传给底层
+            city=city        # 👈 传给底层
         )
         if result.get("status") == "error":
             raise HTTPException(status_code=400, detail=result.get("message"))

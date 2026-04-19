@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.endpoints import chat, knowledge, graph
+from app.api.endpoints import chat, knowledge, graph,dashboard
 
 # 建立总机
 api_router = APIRouter()
@@ -8,3 +8,4 @@ api_router = APIRouter()
 api_router.include_router(chat.router, prefix="/chat", tags=["🤖 智能问答与视觉诊断"])
 api_router.include_router(knowledge.router, prefix="/knowledge", tags=["📚 知识库后台管理"])
 api_router.include_router(graph.router, prefix="/graph", tags=["🕸️ 知识图谱大屏分析"])
+api_router.include_router(dashboard.router, prefix="/dashboard", tags=["全国数据监控大屏"])
