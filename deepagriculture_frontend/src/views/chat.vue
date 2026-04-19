@@ -116,63 +116,61 @@ async function send() {
   await scrollToBottom();
 
   try {
+    let payload;
     if (file) {
-      const payload = await postIdentify({
+      payload = await postIdentify({
         file,
         cropName: cropNameSnapshot || undefined,
         userText: userText || undefined,
         sessionId: sessionId.value,
       });
-
-      const answer =
-        payload == null
-          ? ""
-          : typeof payload === "string"
-            ? payload
-            : typeof payload.answer === "string"
-              ? payload.answer
-              : typeof payload.data?.answer === "string"
-                ? payload.data.answer
-                : typeof payload.message === "string"
-                  ? payload.message
-                  : typeof payload.detail === "string"
-                    ? payload.detail
-                    : JSON.stringify(payload, null, 2);
-      messages.value = messages.value.filter((m) => m.id !== loadingId);
-      messages.value.push({
-        id: crypto?.randomUUID ? crypto.randomUUID() : String(Date.now() + 1),
-        role: "assistant",
-        text: answer,
-      });
     } else {
       // 使用普通 POST 请求获取 JSON 响应
-      const payload = await postChat({
+      payload = await postChat({
         query: userText,
         sessionId: sessionId.value,
         province: "广东省", // 模拟或实际获取的前端省份
         city: "广州市"       // 模拟或实际获取的前端城市
       });
+    }
 
-      const answer =
-        payload == null
-          ? ""
-          : typeof payload === "string"
-            ? payload
-            : typeof payload.answer === "string"
-              ? payload.answer
-              : typeof payload.data?.answer === "string"
-                ? payload.data.answer
-                : typeof payload.message === "string"
-                  ? payload.message
-                  : typeof payload.detail === "string"
-                    ? payload.detail
-                    : JSON.stringify(payload, null, 2);
+    let answer =
+      payload == null
+        ? ""
+        : typeof payload === "string"
+          ? payload
+          : typeof payload.answer === "string"
+            ? payload.answer
+            : typeof payload.data?.answer === "string"
+              ? payload.data.answer
+              : typeof payload.message === "string"
+                ? payload.message
+                : typeof payload.detail === "string"
+                  ? payload.detail
+                  : JSON.stringify(payload, null, 2);
 
-      const msg = messages.value.find((m) => m.id === loadingId);
-      if (msg) {
-        msg.text = answer || "对不起，我暂时无法回答。";
-        msg.loading = false;
-      }
+    if (!answer) {
+      answer = "对不起，我暂时无法回答。";
+    }
+
+    const msg = messages.value.find((m) => m.id === loadingId);
+    if (msg) {
+      msg.loading = false;
+      msg.text = "";
+
+      // 模拟流式输出打字机效果，按HTML标签或单字符进行分割，防止切割导致HTML标签解析失败
+      const tokens = answer.match(/<[^>]+>|./g) || [];
+      let i = 0;
+
+      const typeNext = () => {
+        if (i < tokens.length) {
+          msg.text += tokens[i]; // 追加一个字符或标签
+          i++;
+          scrollToBottom();
+          setTimeout(typeNext, 20); // 20ms输出一个字符，可微调
+        }
+      };
+      typeNext();
     }
   } catch (err) {
     if (err?.name === "AbortError") {
@@ -305,8 +303,8 @@ function onEnterSend(e) {
                   style="box-shadow: 0 0 10px rgba(18, 31, 7, 0.25);"></span>
               </div>
               <div
-                class="bg-white p-5 rounded-2xl rounded-tl-sm shadow-[0_4px_20px_rgba(18,31,7,0.03)] text-on-surface text-[16px] leading-relaxed whitespace-pre-wrap">
-                {{ m.text }}
+                class="bg-white p-5 rounded-2xl rounded-tl-sm shadow-[0_4px_20px_rgba(18,31,7,0.03)] text-on-surface text-[16px] leading-relaxed whitespace-pre-wrap"
+                v-html="m.text">
               </div>
             </div>
           </template>
