@@ -194,6 +194,7 @@ class RAGOrchestrator:
 【历史聊天记录】：
 {history_context}
 {user_msg_hint}
+{crop_hint}
 
 【任务说明】：请仔细观察图片并结合记录诊断。
 必须且只能输出单行格式：“[作物名称][你猜测的病害名称] [核心症状描述]”。如果非植物，回复“非植物”。"""
