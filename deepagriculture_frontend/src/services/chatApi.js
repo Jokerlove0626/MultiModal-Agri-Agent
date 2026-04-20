@@ -70,35 +70,49 @@ export async function postChatStream({
 	let buffer = "";
 	let fullText = "";
 
-	const flushEvent = (eventText) => {
-		const blocks = String(eventText).split("\n");
-		for (const block of blocks) {
-			if (!block.startsWith("data: ")) continue;
-			const text = block.slice("data: ".length);
-			if (text === "[DONE]") return { done: true };
-			if (text) {
-				fullText += text;
-				if (typeof onChunk === "function") onChunk(text, fullText);
+	try {
+		while (true) {
+			const { done, value } = await reader.read();
+			if (done) break;
+
+			// 解码二进制数据为文本
+			const chunk = decoder.decode(value, { stream: true });
+			buffer += chunk;
+
+			// 按SSE协议分割数据包（标准格式：data: ...\n\n）
+			const lines = buffer.split("\n\n");
+			buffer = lines.pop() || ""; // 保留不完整的行到下一次处理
+
+			// 遍历处理每一个完整数据包
+			for (const line of lines) {
+				if (!line.trim() || line.startsWith(":")) continue;
+
+				// 提取内容
+				// 注意：这里由于后端是纯文本，如果有空格需要保留，所以直接截取。
+				let dataStr = line.replace(/^data:\s*/, "");
+
+				// 流结束标记
+				if (dataStr.trim() === "[DONE]") {
+					reader.cancel();
+					return fullText;
+				}
+
+				// 累加真正的流式回答并回调渲染
+				if (dataStr) {
+					fullText += dataStr;
+					if (typeof onChunk === "function")
+						onChunk(dataStr, fullText);
+				}
 			}
 		}
-		return { done: false };
-	};
-
-	while (true) {
-		const { done, value } = await reader.read();
-		if (done) break;
-		buffer += decoder.decode(value, { stream: true });
-
-		let sepIndex;
-		while ((sepIndex = buffer.indexOf("\n\n")) !== -1) {
-			const eventText = buffer.slice(0, sepIndex);
-			buffer = buffer.slice(sepIndex + 2);
-			const { done: isDone } = flushEvent(eventText);
-			if (isDone) return fullText;
+	} catch (e) {
+		if (e.name === "AbortError") {
+			console.log("Stream aborted manually");
+		} else {
+			throw e;
 		}
 	}
 
-	if (buffer.trim()) flushEvent(buffer);
 	return fullText;
 }
 
@@ -131,4 +145,81 @@ export async function postIdentify({
 		throw new Error(message);
 	}
 	return data;
+}
+
+export async function postIdentifyStream({
+	file,
+	cropName,
+	userText,
+	sessionId,
+	onChunk,
+	signal,
+} = {}) {
+	const baseUrl = getApiBaseUrl();
+	const url = joinUrl(baseUrl, "/api/chat/identify");
+
+	const formData = new FormData();
+	formData.append("file", file);
+	if (cropName !== undefined && cropName !== null)
+		formData.append("crop_name", cropName);
+	if (userText !== undefined && userText !== null)
+		formData.append("user_text", userText);
+	if (sessionId !== undefined && sessionId !== null)
+		formData.append("session_id", sessionId);
+
+	const resp = await fetch(url, {
+		method: "POST",
+		body: formData,
+		signal,
+	});
+
+	if (!resp.ok) {
+		const data = await resp.json().catch(() => null);
+		const message = data?.detail || data?.message || resp.statusText;
+		throw new Error(message);
+	}
+	if (!resp.body) throw new Error("流式响应不可用（response.body 为空）");
+
+	const reader = resp.body.getReader();
+	const decoder = new TextDecoder("utf-8");
+	let buffer = "";
+	let fullText = "";
+
+	try {
+		while (true) {
+			const { done, value } = await reader.read();
+			if (done) break;
+
+			const chunk = decoder.decode(value, { stream: true });
+			buffer += chunk;
+
+			const lines = buffer.split("\n\n");
+			buffer = lines.pop() || "";
+
+			for (const line of lines) {
+				if (!line.trim() || line.startsWith(":")) continue;
+
+				let dataStr = line.replace(/^data:\s*/, "");
+
+				if (dataStr.trim() === "[DONE]") {
+					reader.cancel();
+					return fullText;
+				}
+
+				if (dataStr) {
+					fullText += dataStr;
+					if (typeof onChunk === "function")
+						onChunk(dataStr, fullText);
+				}
+			}
+		}
+	} catch (e) {
+		if (e.name === "AbortError") {
+			console.log("Stream aborted manually");
+		} else {
+			throw e;
+		}
+	}
+
+	return fullText;
 }
