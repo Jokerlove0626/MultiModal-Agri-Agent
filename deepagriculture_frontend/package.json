@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@material-symbols/font-400": "^0.44.2",
+    "axios": "^1.15.1",
     "dompurify": "^3.4.0",
     "echarts": "^6.0.0",
     "marked": "^18.0.2",
