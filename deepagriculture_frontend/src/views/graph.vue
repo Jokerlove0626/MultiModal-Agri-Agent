@@ -93,7 +93,7 @@ const fetchAndRenderData = async () => {
       ...link,
       lineStyle: {
         width: 2,
-        curveness: 0.2, // 曲线
+        curveness: 0.3, // 曲线
         opacity: 0.6,
         color: 'source', // 跟随起点颜色
       },
@@ -155,6 +155,7 @@ const fetchAndRenderData = async () => {
           categories: categories,
           roam: true, // 允许缩放和拖拽
           zoom: 1.2,
+          initLayout: 'circular',
           emphasis: {
             focus: 'adjacency', // 聚焦时突出相关联的节点
             lineStyle: {
