@@ -5,7 +5,7 @@
       <svg width="100%" height="100%">
         <defs>
           <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e0f2f1" stroke-width="1"/>
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e0f2f1" stroke-width="1" />
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#grid)" />
@@ -15,23 +15,17 @@
     <div ref="chartRef" class="w-full h-full z-10"></div>
     <!-- 右侧详情面板 -->
     <transition name="slide-fade">
-      <div
-        v-if="selectedProvince"
-        class="fixed top-0 right-0 h-full w-[350px] max-w-full z-20 flex flex-col
+      <div v-if="selectedProvince" class="fixed top-0 right-0 h-full w-[350px] max-w-full z-20 flex flex-col
                bg-white/60 backdrop-blur-lg shadow-2xl border-l border-[#a7f3d0] 
-               transition-all duration-300"
-      >
+               transition-all duration-300">
         <div class="flex items-center justify-between px-6 py-5 border-b border-[#a7f3d0]">
           <h2 class="text-2xl font-bold text-[#059669] tracking-wide">
             {{ selectedProvince.name }}
           </h2>
-          <button
-            @click="selectedProvince = null"
-            class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#d1fae5] transition"
-            aria-label="关闭"
-          >
+          <button @click="selectedProvince = null"
+            class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-[#d1fae5] transition" aria-label="关闭">
             <svg class="w-5 h-5 text-[#059669]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
@@ -46,16 +40,12 @@
             <div>
               <div class="text-lg text-gray-600 mb-2">主要病害</div>
               <div v-if="selectedProvince.pests && selectedProvince.pests.length > 0" class="flex flex-wrap gap-2">
-                <span
-                  v-for="(pest, idx) in selectedProvince.pests"
-                  :key="pest"
-                  :class="[
-                    'px-3 py-1 rounded-full text-sm font-medium shadow',
-                    idx % 2 === 0
-                      ? 'bg-[#fbbf24]/80 text-[#b45309]'
-                      : 'bg-[#ef4444]/80 text-white'
-                  ]"
-                >
+                <span v-for="(pest, idx) in selectedProvince.pests" :key="pest" :class="[
+                  'px-3 py-1 rounded-full text-sm font-medium shadow',
+                  idx % 2 === 0
+                    ? 'bg-[#fbbf24]/80 text-[#b45309]'
+                    : 'bg-[#ef4444]/80 text-white'
+                ]">
                   {{ pest }}
                 </span>
               </div>
@@ -65,7 +55,7 @@
           <div v-else class="flex flex-col items-center justify-center h-40 text-gray-400">
             <svg class="w-12 h-12 mb-2" fill="none" stroke="#a7f3d0" stroke-width="2" viewBox="0 0 24 24">
               <circle cx="12" cy="12" r="10" />
-              <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h8M12 8v8"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h8M12 8v8" />
             </svg>
             <div>该地区暂无近期病虫害上报</div>
           </div>
@@ -78,7 +68,7 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 import * as echarts from 'echarts'
-import chinaJson from '../../public/map/china.json?raw'
+import chinaJson from '../map/china.json?raw'
 
 const chartRef = ref(null)
 let chartInstance = null
@@ -216,13 +206,15 @@ onMounted(() => {
 /* 右侧面板动画 */
 .slide-fade-enter-active,
 .slide-fade-leave-active {
-  transition: all 0.35s cubic-bezier(.4,0,.2,1);
+  transition: all 0.35s cubic-bezier(.4, 0, .2, 1);
 }
+
 .slide-fade-enter-from,
 .slide-fade-leave-to {
   transform: translateX(100%);
   opacity: 0;
 }
+
 .slide-fade-enter-to,
 .slide-fade-leave-from {
   transform: translateX(0);
