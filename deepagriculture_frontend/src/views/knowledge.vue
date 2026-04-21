@@ -77,14 +77,15 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="min-h-screen bg-tech-darker text-surface relative overflow-x-hidden p-6 md:p-12 font-body flex items-center justify-center pt-24 md:pt-32 selection:bg-primary/30">
+    class="min-h-screen bg-tech-darker text-surface relative p-6 md:p-12 font-body flex items-center justify-center pt-24 md:pt-32 selection:bg-primary/30">
     <!-- Background Effects -->
-    <div class="absolute inset-0 bg-tech-grid bg-grid-size opacity-20 pointer-events-none z-0"></div>
-    <div
-      class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none">
-    </div>
-    <div
-      class="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-[#00f2fe]/10 rounded-full blur-[150px] pointer-events-none">
+    <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      <div class="absolute inset-0 bg-tech-grid bg-grid-size opacity-20"></div>
+      <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px]">
+      </div>
+      <div
+        class="absolute bottom-[-50px] right-[-50px] md:bottom-[-10%] md:right-[-10%] w-[600px] h-[600px] bg-[#00f2fe]/10 rounded-full blur-[150px]">
+      </div>
     </div>
 
     <div class="relative z-10 w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">

@@ -73,12 +73,12 @@ onMounted(() => {
 						将土壤的原始生命力与人工智能的临床精度相连接。体验高端、权威的农业植保与病害管理方案。
 					</p>
 					<div class="flex items-center gap-4 pt-4 reveal-up delay-300">
-						<button
+						<router-link to="/chat"
 							class="bg-primary text-white px-8 py-4 rounded-full font-medium hover:shadow-glow transition-all duration-400 flex items-center gap-2 hover:-translate-y-1 group">
 							立即体验AI问诊
 							<span
 								class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
-						</button>
+						</router-link>
 					</div>
 				</div>
 				<!-- Conceptual Force-Directed Graph UI -->
@@ -788,12 +788,12 @@ onMounted(() => {
 				<p class="font-body text-xl text-white/80 max-w-2xl">
 					无需注册，无需下载，打开就能用，田间难题一键解决
 				</p>
-				<button
+				<router-link to="/chat"
 					class="bg-white text-primary px-10 py-5 rounded-full font-headline font-bold text-lg hover:shadow-glow hover:scale-105 transition-all duration-400 ease-[cubic-bezier(0.25,1,0.5,1)] group">
 					立即免费体验 AI 问诊
 					<span
 						class="material-symbols-outlined ml-2 align-middle group-hover:translate-x-1 transition-transform">arrow_forward</span>
-				</button>
+				</router-link>
 				<div class="pt-16 flex flex-col md:flex-row items-center justify-center gap-12 text-white/70">
 					<div class="flex items-center gap-4">
 						<div
@@ -893,8 +893,8 @@ onMounted(() => {
 				<div class="border-t border-white/10 pt-8 flex flex-col gap-4 text-xs">
 					<div class="flex flex-col md:flex-row justify-between gap-4">
 						<p>
-							版权所有 © 2024 DeepAgriculture 智农大夫研发团队 |
-							主办单位：XXX 大学 | 指导单位：XXX 农学院
+							版权所有 © 2026 DeepAgriculture 智农大夫研发团队 |
+							主办单位：浙江农林大学 | 指导单位：数学与计算机科学学院
 						</p>
 						<div class="flex gap-4">
 							<span>备案号：京ICP备XXXXXXXX号-1</span>

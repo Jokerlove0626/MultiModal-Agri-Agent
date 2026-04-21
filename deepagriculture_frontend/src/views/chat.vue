@@ -349,9 +349,9 @@ function onEnterSend(e) {
           </div>
           <div>
             <h1 class="font-headline font-bold text-on-surface text-base leading-tight">
-              Living Laboratory
+              智农实验室
             </h1>
-            <p class="text-xs text-on-surface-variant/70 mt-0.5">AI Diagnostic Engine</p>
+            <p class="text-xs text-on-surface-variant/70 mt-0.5">AI 诊断引擎</p>
           </div>
         </div>
       </div>
@@ -388,9 +388,15 @@ function onEnterSend(e) {
 
       <header
         class="px-6 md:px-8 py-5 flex items-center justify-between z-10 sticky top-0 bg-surface/80 backdrop-blur-md">
-        <div>
-          <h2 class="font-headline font-medium text-[22px] text-on-surface">开启新诊断</h2>
-          <p class="text-sm text-on-surface-variant mt-1">上传病害照片或描述作物受灾情况</p>
+        <div class="flex items-center gap-4">
+          <router-link to="/"
+            class="w-10 h-10 rounded-full hover:bg-surface-variant transition-colors text-on-surface-variant flex items-center justify-center -ml-2">
+            <span class="material-symbols-outlined">arrow_back</span>
+          </router-link>
+          <div>
+            <h2 class="font-headline font-medium text-[22px] text-on-surface">开启新诊断</h2>
+            <p class="text-sm text-on-surface-variant mt-1">上传病害照片或描述作物受灾情况</p>
+          </div>
         </div>
         <div class="flex items-center gap-4">
           <button class="p-2 rounded-full hover:bg-surface-container-low transition-colors text-on-surface-variant"
@@ -401,7 +407,7 @@ function onEnterSend(e) {
       </header>
 
       <div ref="streamRef"
-        class="flex-1 overflow-y-auto px-4 md:px-12 lg:px-24 pb-48 pt-8 flex flex-col gap-10 z-10 w-full max-w-5xl mx-auto scroll-smooth">
+        class="flex-1 overflow-y-auto px-4 md:px-8 lg:px-16 xl:px-24 pb-48 pt-8 flex flex-col gap-10 z-10 w-full max-w-6xl scroll-smooth">
 
         <div v-for="(m, idx) in messages" :key="m.id" :class="[
           'relative z-10',
@@ -531,6 +537,3 @@ function onEnterSend(e) {
   transition: transform 0.1s cubic-bezier(0.25, 1, 0.5, 1);
 }
 </style>
-
-
-
