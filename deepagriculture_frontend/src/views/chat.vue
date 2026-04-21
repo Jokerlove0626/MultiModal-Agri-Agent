@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref } from "vue";
-import { postChat, postIdentify, postChatStream } from "@/services/chatApi";
+import { postChat, postIdentify, postChatStream, postIdentifyStream } from "@/services/chatApi";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 
@@ -32,6 +32,72 @@ const isSending = ref(false);
 const errorText = ref("");
 
 const activeStreamController = ref(null);
+
+const isRecording = ref(false);
+let recognition = null;
+let tempQuery = "";
+
+function toggleRecording() {
+  if (isRecording.value) {
+    isRecording.value = false;
+    if (recognition) {
+      // 使用 stop 会等待当前语句识别完成，若不需要可以改用 abort()
+      recognition.stop();
+    }
+    return;
+  }
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    errorText.value = "当前浏览器不支持语音识别，请使用 Chrome 或 Edge 浏览器。";
+    return;
+  }
+
+  if (!recognition) {
+    recognition = new SpeechRecognition();
+    recognition.lang = "zh-CN";
+    recognition.continuous = true;
+    recognition.interimResults = true; // 允许实时返回临时结果
+
+    recognition.onstart = () => {
+      isRecording.value = true;
+      errorText.value = "";
+      tempQuery = queryText.value ? queryText.value + " " : "";
+    };
+
+    recognition.onresult = (event) => {
+      let currentTranscript = "";
+      // 从 0 开始遍历当次启动后的所有结果片段，包括已确认(isFinal)的和还在实时识别中(interim)的
+      for (let i = 0; i < event.results.length; i++) {
+        currentTranscript += event.results[i][0].transcript;
+      }
+      queryText.value = tempQuery + currentTranscript;
+    };
+
+    recognition.onerror = (event) => {
+      // 如果手动停止引发的 abort 错误则忽略
+      if (event.error !== 'aborted') {
+        if (event.error === 'network') {
+          errorText.value = "语音网络错误。注：Chrome 浏览器的语音识别依赖谷歌服务(在国内可能被墙)，建议使用 Edge 浏览器或开启代理。";
+        } else {
+          errorText.value = `语音输入出错: ${event.error}`;
+        }
+      }
+      isRecording.value = false;
+    };
+
+    recognition.onend = () => {
+      isRecording.value = false;
+    };
+  }
+
+  try {
+    recognition.start();
+  } catch (err) {
+    console.error(err);
+    isRecording.value = false;
+  }
+}
 
 const canSend = computed(() => {
   return Boolean(queryText.value.trim()) || Boolean(selectedFile.value);
@@ -127,33 +193,30 @@ async function send() {
 
   try {
     if (file) {
-      const payload = await postIdentify({
+      activeStreamController.value = new AbortController();
+      const msg = messages.value.find((m) => m.id === loadingId);
+
+      await postIdentifyStream({
         file,
-        cropName: cropNameSnapshot, // 直接传，即使是空字符串后端也能收到
-        userText: userText,         // 直接传输入框文本，即使空也会以空字符串发送
+        cropName: cropNameSnapshot, // 直接传
+        userText: userText,         // 直接传
         sessionId: sessionId.value,
+        signal: activeStreamController.value.signal,
+        onChunk: (chunk, fullText) => {
+          if (msg) {
+            msg.loading = false;
+            // 实时把 Markdown 解析成 HTML，并处理防 XSS 注入，利用 Tailwind Prose 提供美观样式
+            msg.text = DOMPurify.sanitize(marked.parse(fullText));
+            scrollToBottom();
+          }
+        },
       });
 
-      let answer =
-        payload == null
-          ? ""
-          : typeof payload === "string"
-            ? payload
-            : typeof payload.answer === "string"
-              ? payload.answer
-              : typeof payload.data?.answer === "string"
-                ? payload.data.answer
-                : typeof payload.message === "string"
-                  ? payload.message
-                  : typeof payload.detail === "string"
-                    ? payload.detail
-                    : JSON.stringify(payload, null, 2);
-
-      const msg = messages.value.find((m) => m.id === loadingId);
-      if (msg) {
+      if (msg && !msg.text) {
         msg.loading = false;
-        msg.text = DOMPurify.sanitize(marked.parse(answer || "对不起，我暂时无法回答。"));
+        msg.text = DOMPurify.sanitize(marked.parse("对不起，我暂时无法回答。"));
       }
+      activeStreamController.value = null;
     } else {
       activeStreamController.value = new AbortController();
       const msg = messages.value.find((m) => m.id === loadingId);
@@ -351,10 +414,14 @@ function onEnterSend(e) {
                 title="上传图片">
                 <span class="material-symbols-outlined text-[22px]">image</span>
               </label>
-              <button
-                class="p-2.5 rounded-full text-on-surface-variant hover:bg-surface-variant hover:text-on-surface transition-colors flex items-center justify-center hidden sm:flex"
-                type="button" disabled title="语音输入（暂未接入）">
-                <span class="material-symbols-outlined text-[22px]">mic</span>
+              <button @click="toggleRecording" :class="[
+                'p-2.5 rounded-full transition-colors flex items-center justify-center hidden sm:flex',
+                isRecording
+                  ? 'bg-primary/20 text-primary shadow-[0_0_12px_rgba(18,31,7,0.15)] animate-pulse'
+                  : 'text-on-surface-variant hover:bg-surface-variant hover:text-on-surface'
+              ]" type="button" :title="isRecording ? '停止语音输入' : '语音输入'">
+                <span class="material-symbols-outlined text-[22px]"
+                  :style="isRecording ? 'font-variation-settings: \'FILL\' 1;' : ''">mic</span>
               </button>
             </div>
 

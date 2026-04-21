@@ -146,3 +146,80 @@ export async function postIdentify({
 	}
 	return data;
 }
+
+export async function postIdentifyStream({
+	file,
+	cropName,
+	userText,
+	sessionId,
+	onChunk,
+	signal,
+} = {}) {
+	const baseUrl = getApiBaseUrl();
+	const url = joinUrl(baseUrl, "/api/chat/identify");
+
+	const formData = new FormData();
+	formData.append("file", file);
+	if (cropName !== undefined && cropName !== null)
+		formData.append("crop_name", cropName);
+	if (userText !== undefined && userText !== null)
+		formData.append("user_text", userText);
+	if (sessionId !== undefined && sessionId !== null)
+		formData.append("session_id", sessionId);
+
+	const resp = await fetch(url, {
+		method: "POST",
+		body: formData,
+		signal,
+	});
+
+	if (!resp.ok) {
+		const data = await resp.json().catch(() => null);
+		const message = data?.detail || data?.message || resp.statusText;
+		throw new Error(message);
+	}
+	if (!resp.body) throw new Error("流式响应不可用（response.body 为空）");
+
+	const reader = resp.body.getReader();
+	const decoder = new TextDecoder("utf-8");
+	let buffer = "";
+	let fullText = "";
+
+	try {
+		while (true) {
+			const { done, value } = await reader.read();
+			if (done) break;
+
+			const chunk = decoder.decode(value, { stream: true });
+			buffer += chunk;
+
+			const lines = buffer.split("\n\n");
+			buffer = lines.pop() || "";
+
+			for (const line of lines) {
+				if (!line.trim() || line.startsWith(":")) continue;
+
+				let dataStr = line.replace(/^data:\s*/, "");
+
+				if (dataStr.trim() === "[DONE]") {
+					reader.cancel();
+					return fullText;
+				}
+
+				if (dataStr) {
+					fullText += dataStr;
+					if (typeof onChunk === "function")
+						onChunk(dataStr, fullText);
+				}
+			}
+		}
+	} catch (e) {
+		if (e.name === "AbortError") {
+			console.log("Stream aborted manually");
+		} else {
+			throw e;
+		}
+	}
+
+	return fullText;
+}
