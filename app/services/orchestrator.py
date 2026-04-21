@@ -6,7 +6,7 @@ from app.services.memory import MemoryManager
 from app.services.llm_client import LLMClient
 from app.services.graph_db import GraphDBClient
 from app.services.vector_db import VectorDBClient
-
+import json
 import datetime
 from app.db.session import SessionLocal # 👈 引入水龙头
 from app.db.models import PestRecord   # 👈 引入表模型
@@ -187,8 +187,17 @@ class RAGOrchestrator:
         self.memory.save_interaction(session_id, user_query, answer)
         return answer
 
-    async def analyze_image_and_answer(self, base64_image: str, crop_name: str = "", user_text: str = "", session_id: str = "default_session"):
-        """核心视觉链路编排（流式逐字输出）"""
+
+    async def analyze_image_and_answer(
+        self, 
+        base64_image: str, 
+        crop_name: str = "", 
+        user_text: str = "", 
+        session_id: str = "default_session",
+        province: str = "未知",  
+        city: str = "未知"       
+    ):
+        """核心多模态视觉链路编排（纯文本 SSE 流式，无 JSON 包装）"""
         try:
             history_context = "无"
             if self.memory.has_history(session_id):
@@ -198,31 +207,55 @@ class RAGOrchestrator:
             crop_hint = f"已知图片中的作物是【{crop_name}】。" if crop_name else "【重要任务】：请先准确识别图片。"
             user_msg_hint = f"\n【用户随图附言】：{user_text}" if user_text else ""
 
-            sys_prompt = f"""你是一位资深的农业植保专家。
+            sys_prompt = f"""你是一个运行在后台的农业植保特征提取引擎。
 【历史聊天记录】：
 {history_context}
 {user_msg_hint}
 {crop_hint}
 
-【任务说明】：请仔细观察图片并结合记录诊断。
-必须且只能输出单行格式：“[作物名称][你猜测的病害名称] [核心症状描述]”。如果非植物，回复“非植物”。"""
+【任务说明】：结合记录和图片，精准识别作物种类和病灶特征。
+为了配合下游图谱检索，你必须且只能输出【纯文本检索词】。
 
-            # 1. 视觉识别流式输出
+【强制输出格式】：
+单行文本：作物名称 病害名称(若能确定) 核心症状描述
+（示例：水稻 纹枯病 叶片出现不规则褐色斑块边缘模糊）
+
+【严格禁令】：
+禁止输出任何分析过程、问候语、标点符号或换行符。如果非植物，仅输出“非植物”。"""
+
+            # 1. 纯文本状态提示：直接以 data: 开头
+            yield f'data: 👀 正在仔细观察植物叶片...\n\n'
+
             symptom = ""
             async for delta in self.llm.chat_vision_stream(sys_prompt, base64_image):
                 symptom += delta
-                yield f"data: {{\"stage\": \"vision\", \"delta\": {repr(delta)}, \"symptom\": {repr(symptom)} }}\n\n"
+                # 依然保持沉默，不把提取的废话吐给前端
 
             if "非植物" in symptom:
-                yield f"data: {{\"status\": \"error\", \"message\": \"图片看起来不像植物，请上传作物病害图片。\"}}\n\n"
+                yield f'data: ❌ 图片看起来不像植物，请上传作物病害图片。\n\n'
                 return
 
-            # 2. 文本RAG流式输出（如支持流式，可改为 async for，否则阶段性yield）
-            yield f"data: {{\"stage\": \"vision_done\", \"symptom\": {repr(symptom)} }}\n\n"
-            final_answer = await self.generate_answer(symptom, session_id=session_id, source="vision")
-            yield f"data: {{\"stage\": \"rag_done\", \"answer\": {repr(final_answer)} }}\n\n"
+            # 2. 视觉分析完成，过渡提示
+            yield f'data: 🔍 症状提取完毕，正在匹配全国知识图谱...\n\n'
+
+            # 3. 🚀 极其关键：直接透传底层 RAG 引擎的原生数据流
+            # 因为 generate_answer_stream 自己已经包装了 "data: xxx \n\n"，所以直接 yield 即可！
+            async for chunk in self.generate_answer_stream(
+                user_query=symptom,       
+                session_id=session_id, 
+                source="vision",          
+                province=province,        
+                city=city                 
+            ):
+                yield chunk
+
+            # 4. 结束标志（如果你前端是用 [DONE] 来判断结束的话）
+            yield f'data: [DONE]\n\n'
+            
         except Exception as e:
-            yield f"data: {{\"status\": \"error\", \"message\": \"视觉模型错误: {str(e)}\"}}\n\n"
+            import traceback
+            traceback.print_exc()
+            yield f'data: ❌ 诊断引擎异常: {str(e)}\n\n'
 
     def add_new_disease(self, disease_name: str, symptom: str, treatment: str) -> bool:
         """知识入库双写编排"""

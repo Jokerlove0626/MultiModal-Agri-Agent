@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, ref, onMounted } from "vue"; // 👈 新增了 onMounted
 import { postChat, postIdentify, postChatStream, postIdentifyStream } from "@/services/chatApi";
 import { marked } from "marked";
 import DOMPurify from "dompurify";
@@ -14,6 +14,77 @@ function getOrCreateSessionId() {
 }
 
 const sessionId = ref(getOrCreateSessionId());
+
+// ==========================================
+// 📍 新增：静默获取用户地理位置逻辑
+// ==========================================
+const userLocation = ref({
+  province: '未知',
+  city: '未知'
+});
+
+// ==========================================
+// 📍 设备原生 GPS/基站定位 + 开源地图解析
+// ==========================================
+
+
+const fetchDeviceLocation = () => {
+  // 1. 检查设备/浏览器是否支持原生定位
+  if (!navigator.geolocation) {
+    console.warn("当前浏览器不支持设备定位功能");
+    userLocation.value = { province: '广东省', city: '广州市' };
+    return;
+  }
+
+  console.log("正在请求设备定位权限...");
+
+  // 2. 调起浏览器原生定位（此时会弹窗询问用户权限）
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      // 成功获取设备的物理经纬度！
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      console.log(`📍 授权成功！获取到设备物理坐标: 纬度 ${lat}, 经度 ${lon}`);
+
+      try {
+        // 3. 拿到经纬度后，使用全球开源地图 (OSM) 把它翻译成中文省市
+        // accept-language=zh-CN 确保返回的数据是中文
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1&accept-language=zh-CN`;
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (data && data.address) {
+          userLocation.value = {
+            // OSM 的省份一般在 state 字段，市可能在 city/town/county 字段
+            province: data.address.state || data.address.province || '未知',
+            city: data.address.city || data.address.town || data.address.county || '未知'
+          };
+          console.log('📍 架构师埋点：设备原生定位解析成功 ->', userLocation.value);
+        }
+      } catch (err) {
+        console.warn('经纬度转省市网络请求失败，使用兜底位置:', err);
+        userLocation.value = { province: '广东省', city: '广州市' };
+      }
+    },
+    (error) => {
+      // 用户点击了“拒绝”，或者设备没有开启定位功能
+      console.warn('设备定位失败或用户拒绝授权，使用兜底位置:', error.message);
+      userLocation.value = { province: '河南省', city: '郑州市' }; // 拒绝时的兜底
+    },
+    {
+      enableHighAccuracy: true, // 要求高精度定位
+      timeout: 10000,           // 超时时间 10 秒
+      maximumAge: 0             // 拒绝使用缓存位置
+    }
+  );
+};
+
+// 页面挂载时调用（注意：这里会触发浏览器的定位弹窗）
+onMounted(() => {
+  fetchDeviceLocation();
+});
+// ==========================================
+
 
 const cropName = ref("");
 const queryText = ref("");
@@ -41,7 +112,6 @@ function toggleRecording() {
   if (isRecording.value) {
     isRecording.value = false;
     if (recognition) {
-      // 使用 stop 会等待当前语句识别完成，若不需要可以改用 abort()
       recognition.stop();
     }
     return;
@@ -57,7 +127,7 @@ function toggleRecording() {
     recognition = new SpeechRecognition();
     recognition.lang = "zh-CN";
     recognition.continuous = true;
-    recognition.interimResults = true; // 允许实时返回临时结果
+    recognition.interimResults = true;
 
     recognition.onstart = () => {
       isRecording.value = true;
@@ -67,7 +137,6 @@ function toggleRecording() {
 
     recognition.onresult = (event) => {
       let currentTranscript = "";
-      // 从 0 开始遍历当次启动后的所有结果片段，包括已确认(isFinal)的和还在实时识别中(interim)的
       for (let i = 0; i < event.results.length; i++) {
         currentTranscript += event.results[i][0].transcript;
       }
@@ -75,7 +144,6 @@ function toggleRecording() {
     };
 
     recognition.onerror = (event) => {
-      // 如果手动停止引发的 abort 错误则忽略
       if (event.error !== 'aborted') {
         if (event.error === 'network') {
           errorText.value = "语音网络错误。注：Chrome 浏览器的语音识别依赖谷歌服务(在国内可能被墙)，建议使用 Edge 浏览器或开启代理。";
@@ -127,7 +195,6 @@ function resetChat() {
 }
 
 function setFile(file) {
-  // 如果不是置空，清理旧的预览以免内存泄漏
   if (selectedFilePreviewUrl.value && file) {
     URL.revokeObjectURL(selectedFilePreviewUrl.value);
   }
@@ -177,7 +244,6 @@ async function send() {
   });
 
   queryText.value = "";
-  // 仅清空文件变量，但不回收内存 URL（因为刚才加入到消息列表的气泡还在使用该 URL 显示图片）
   selectedFile.value = null;
   selectedFilePreviewUrl.value = "";
 
@@ -198,14 +264,15 @@ async function send() {
 
       await postIdentifyStream({
         file,
-        cropName: cropNameSnapshot, // 直接传
-        userText: userText,         // 直接传
+        cropName: cropNameSnapshot,
+        userText: userText,
         sessionId: sessionId.value,
+        province: userLocation.value.province, // 👈 关键注入点：多模态请求携带定位
+        city: userLocation.value.city,         // 👈 关键注入点
         signal: activeStreamController.value.signal,
         onChunk: (chunk, fullText) => {
           if (msg) {
             msg.loading = false;
-            // 实时把 Markdown 解析成 HTML，并处理防 XSS 注入，利用 Tailwind Prose 提供美观样式
             msg.text = DOMPurify.sanitize(marked.parse(fullText));
             scrollToBottom();
           }
@@ -224,11 +291,12 @@ async function send() {
       await postChatStream({
         query: userText,
         sessionId: sessionId.value,
+        province: userLocation.value.province, // 👈 关键注入点：纯文本请求携带定位
+        city: userLocation.value.city,         // 👈 关键注入点
         signal: activeStreamController.value.signal,
         onChunk: (chunk, fullText) => {
           if (msg) {
             msg.loading = false;
-            // 实时把 Markdown 解析成 HTML，并处理防 XSS 注入，利用 Tailwind Prose 提供美观样式
             msg.text = DOMPurify.sanitize(marked.parse(fullText));
             scrollToBottom();
           }
@@ -463,3 +531,6 @@ function onEnterSend(e) {
   transition: transform 0.1s cubic-bezier(0.25, 1, 0.5, 1);
 }
 </style>
+
+
+

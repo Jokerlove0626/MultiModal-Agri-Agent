@@ -40,6 +40,8 @@ export async function postChat({ query, sessionId, province, city } = {}) {
 export async function postChatStream({
 	query,
 	sessionId,
+	province, // 👈 新增：接收省份
+    city,     // 👈 新增：接收城市
 	onChunk,
 	signal,
 } = {}) {
@@ -55,6 +57,8 @@ export async function postChatStream({
 		body: JSON.stringify({
 			query,
 			session_id: sessionId || undefined,
+			province: province || undefined, // 👈 新增：塞入 JSON Payload
+            city: city || undefined,         // 👈 新增：塞入 JSON Payload
 		}),
 	});
 
@@ -121,6 +125,8 @@ export async function postIdentify({
 	cropName,
 	userText,
 	sessionId,
+	province, // 👈 新增
+    city,     // 👈 新增
 } = {}) {
 	const baseUrl = getApiBaseUrl();
 	const url = joinUrl(baseUrl, "/api/chat/identify");
@@ -133,7 +139,8 @@ export async function postIdentify({
 		formData.append("user_text", userText);
 	if (sessionId !== undefined && sessionId !== null)
 		formData.append("session_id", sessionId);
-
+	if (province) formData.append("province", province); // 👈 新增：塞入 FormData
+    if (city) formData.append("city", city);             // 👈 新增：塞入 FormData
 	const resp = await fetch(url, {
 		method: "POST",
 		body: formData,
@@ -152,6 +159,8 @@ export async function postIdentifyStream({
 	cropName,
 	userText,
 	sessionId,
+	province, // 👈 新增
+    city,     // 👈 新增
 	onChunk,
 	signal,
 } = {}) {
@@ -166,7 +175,8 @@ export async function postIdentifyStream({
 		formData.append("user_text", userText);
 	if (sessionId !== undefined && sessionId !== null)
 		formData.append("session_id", sessionId);
-
+	if (province) formData.append("province", province); // 👈 新增：塞入 FormData
+    if (city) formData.append("city", city);             // 👈 新增：塞入 FormData
 	const resp = await fetch(url, {
 		method: "POST",
 		body: formData,
