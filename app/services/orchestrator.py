@@ -51,7 +51,7 @@ class RAGOrchestrator:
                 chunk_size = 5
                 for i in range(0, len(cached_answer), chunk_size):
                     chunk = cached_answer[i:i+chunk_size]
-                    safe_chunk = chunk.replace('\n', '<br>')
+                    safe_chunk = chunk.replace('\n', '\\n')
                     yield f"data: {safe_chunk}\n\n"
                     await asyncio.sleep(0.01)
                 
@@ -90,36 +90,45 @@ class RAGOrchestrator:
         context_str = f"【诊断】: {matched_disease}\n【摘要】: {graph_data['summary']}\n【农业】: {graph_data['agricultural']}\n【生物】: {graph_data['biological']}\n【化学】: {graph_data['chemicals']}"
 
         # 🌟 专家级 System Prompt (注意保持这里的缩进)
-        system_prompt = f"""你是一位享誉业内的【首席农业植保专家】。
-你现在正在为农户开具一份正式的《植物病虫害专家诊断处方报告》。
+        system_prompt = f"""你是一位严谨的农业植保专家。
+你现在的任务是输出一份《植物病虫害专家诊断处方单》。
 
-[处方报告标准格式]：
-# 🛡️ 专家诊断处方单
+【最高格式准则】：
+1. 必须原样复刻下方的 [处方单骨架模板]，严格使用 `>` 符号生成高亮引用块。
+2. 药方必须使用标准 Markdown 表格整理，表格外围不要加 `>` 符号。
+3. 严禁自行补充未在资料中出现的建议，严禁暴露分析过程，严禁伪造署名和日期。
 
-### 📍 1. 诊断结论
-- **确诊对象**：{matched_disease}
-- **核心判定**：(根据资料简述该病害威胁)
-
-### 🔍 2. 症状溯源
-(基于资料，简要分析特征)
-
-### 💊 3. 综合防治集成方案
 ---
-#### (1) 基础农业措施
-* (列出要点)
+[请严格按照以下骨架模板进行填空输出]：
 
-#### (2) 精准化学干预
+## 🛡️ 专家诊断处方单
+
+> **📍 1. 诊断结论**
+> **确诊对象**：{matched_disease}
+> **核心判定**：(在此简述该病害威胁，1句话)
+
+> **🔍 2. 症状溯源**
+> (在此简要分析特征)
+
+> **💊 3. 综合防治集成方案**
+> **(1) 基础农业措施**
+> * (填写措施1)
+> * (填写措施2)
+
+**🎯 精准化学干预** (请在下方直接输出表格，不要加 > 符号)
+
 | 药剂名称 | 推荐浓度 | 施药时机 | 作用目标 |
 | :--- | :--- | :--- | :--- |
 | (药剂) | (浓度) | (时机) | (防效) |
 
-### ⚠️ 4. 专家风险提示
-- (提示安全与监测要点)
+> **⚠️ 4. 专家风险提示**
+> - (安全预警1)
+> - (用药建议2)
 
 ---
-(专家鼓励语)"""
+**专家寄语**：(用一句真诚的话鼓励农户)"""
 
-        yield "data: 🧠 检索完毕，千问大模型正在生成诊断报告...<br><br>\n\n"
+        yield "data: 🧠 检索完毕，“智农大夫”大模型正在生成诊断报告...<br><br>\n\n"
 
         # 5. 呼叫大模型
         messages = [
@@ -140,7 +149,7 @@ class RAGOrchestrator:
                 if chunk.choices and chunk.choices[0].delta.content:
                     char = chunk.choices[0].delta.content
                     full_answer += char 
-                    safe_char = char.replace('\n', '<br>')
+                    safe_char = char.replace('\n', '\\n')
                     yield f"data: {safe_char}\n\n"
 
             

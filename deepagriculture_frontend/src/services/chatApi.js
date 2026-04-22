@@ -94,7 +94,7 @@ export async function postChatStream({
 				// 提取内容
 				// 注意：这里由于后端是纯文本，如果有空格需要保留，所以直接截取。
 				let dataStr = line.replace(/^data:\s*/, "");
-
+				dataStr = dataStr.replace(/\\n/g, "\n");
 				// 流结束标记
 				if (dataStr.trim() === "[DONE]") {
 					reader.cancel();
