@@ -9,6 +9,8 @@ const form = ref({
 });
 
 const isSubmitting = ref(false);
+const syncStatus = ref('idle'); // 'idle', 'syncing', 'success', 'error'
+
 const toastState = ref({
   show: false,
   message: '',
@@ -29,6 +31,7 @@ const submitKnowledge = async () => {
   }
 
   isSubmitting.value = true;
+  syncStatus.value = 'syncing';
   try {
     const res = await fetch('http://127.0.0.1:8000/api/knowledge/add', {
       method: 'POST',
@@ -42,16 +45,24 @@ const submitKnowledge = async () => {
 
     if (res.ok) {
       showToast('知识库数据双写同步成功！', 'success');
+      syncStatus.value = 'success';
       form.value.disease_name = '';
       form.value.symptom = '';
       form.value.treatment = '';
     } else {
       showToast(data.detail || '接口验证失败', 'error');
+      syncStatus.value = 'error';
     }
   } catch (err) {
     showToast('网络错误，请检查后端服务是否启动', 'error');
+    syncStatus.value = 'error';
   } finally {
     isSubmitting.value = false;
+    setTimeout(() => {
+      if (syncStatus.value !== 'syncing') {
+        syncStatus.value = 'idle';
+      }
+    }, 4500);
   }
 };
 
@@ -116,11 +127,22 @@ onUnmounted(() => {
           </h3>
 
           <div class="flex flex-col gap-6 relative z-10">
-            <div
-              class="flex items-center justify-between p-4 rounded-xl bg-black/40 border border-white/5 group hover:border-primary/30 transition-colors">
+            <!-- ChromaDB Node -->
+            <div :class="[
+              'flex items-center justify-between p-4 rounded-xl bg-black/40 border transition-all duration-300',
+              syncStatus === 'syncing' ? 'border-primary/50 shadow-[0_0_15px_rgba(46,125,50,0.15)]' :
+                syncStatus === 'success' ? 'border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.15)]' :
+                  syncStatus === 'error' ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.15)]' : 'border-white/5 hover:border-primary/30'
+            ]">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                <div :class="[
+                  'w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300',
+                  syncStatus === 'syncing' ? 'bg-indigo-500/30 text-indigo-300 animate-pulse' :
+                    syncStatus === 'success' ? 'bg-green-500/20 text-green-400' :
+                      syncStatus === 'error' ? 'bg-red-500/20 text-red-400' : 'bg-indigo-500/20 text-indigo-400'
+                ]">
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                    :class="['w-5 h-5', syncStatus === 'syncing' ? 'animate-spin' : '']" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
@@ -128,17 +150,35 @@ onUnmounted(() => {
                 </div>
                 <div>
                   <div class="text-sm font-medium text-white/90">ChromaDB</div>
-                  <div class="text-xs text-white/50">Vector Embeddings</div>
+                  <div class="text-xs" :class="syncStatus === 'success' ? 'text-green-400/80' : 'text-white/50'">Vector
+                    Embeddings</div>
                 </div>
               </div>
-              <div class="text-xs font-mono text-indigo-400">Wait...</div>
+              <div :class="[
+                'text-xs font-mono font-bold transition-colors delay-100',
+                syncStatus === 'syncing' ? 'text-indigo-300 animate-pulse' :
+                  syncStatus === 'success' ? 'text-green-400' :
+                    syncStatus === 'error' ? 'text-red-400' : 'text-indigo-400'
+              ]">{{ syncStatus === 'idle' ? 'Wait...' : syncStatus === 'syncing' ? 'Writing...' : syncStatus ===
+                'success' ? 'Synced' : 'Failed' }}</div>
             </div>
 
-            <div
-              class="flex items-center justify-between p-4 rounded-xl bg-black/40 border border-white/5 group hover:border-primary/30 transition-colors">
+            <!-- Neo4j Graph Node -->
+            <div :class="[
+              'flex items-center justify-between p-4 rounded-xl bg-black/40 border transition-all duration-300 delay-75',
+              syncStatus === 'syncing' ? 'border-primary/50 shadow-[0_0_15px_rgba(46,125,50,0.15)]' :
+                syncStatus === 'success' ? 'border-green-500/50 shadow-[0_0_15px_rgba(34,197,94,0.15)]' :
+                  syncStatus === 'error' ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.15)]' : 'border-white/5 hover:border-primary/30'
+            ]">
               <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                <div :class="[
+                  'w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-300 delay-75',
+                  syncStatus === 'syncing' ? 'bg-primary/30 text-primary animate-pulse' :
+                    syncStatus === 'success' ? 'bg-green-500/20 text-green-400' :
+                      syncStatus === 'error' ? 'bg-red-500/20 text-red-400' : 'bg-primary/20 text-primary'
+                ]">
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                    :class="['w-5 h-5', syncStatus === 'syncing' ? 'animate-spin' : '']" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -146,16 +186,34 @@ onUnmounted(() => {
                 </div>
                 <div>
                   <div class="text-sm font-medium text-white/90">Neo4j Graph</div>
-                  <div class="text-xs text-white/50">Entities & Relations</div>
+                  <div class="text-xs" :class="syncStatus === 'success' ? 'text-green-400/80' : 'text-white/50'">
+                    Entities & Relations</div>
                 </div>
               </div>
-              <div class="text-xs font-mono text-primary">Wait...</div>
+              <div :class="[
+                'text-xs font-mono font-bold transition-colors delay-150',
+                syncStatus === 'syncing' ? 'text-primary-fixed animate-pulse' :
+                  syncStatus === 'success' ? 'text-green-400' :
+                    syncStatus === 'error' ? 'text-red-400' : 'text-primary'
+              ]">{{ syncStatus === 'idle' ? 'Wait...' : syncStatus === 'syncing' ? 'Writing...' : syncStatus ===
+                'success' ? 'Synced' : 'Failed' }}</div>
             </div>
 
             <!-- Connecting Line -->
-            <div
-              class="absolute left-9 top-[3.5rem] bottom-[3.5rem] w-[2px] bg-gradient-to-b from-indigo-500/50 to-primary/50 flex flex-col justify-center -z-10">
-              <div class="w-2 h-2 rounded-full bg-white/80 animate-ping -translate-x-[3px]"></div>
+            <div :class="[
+              'absolute left-9 top-[3.5rem] bottom-[3.5rem] w-[2px] flex flex-col justify-center -z-10 transition-colors duration-500',
+              syncStatus === 'syncing' ? 'bg-gradient-to-b from-indigo-500 to-primary-fixed' :
+                syncStatus === 'success' ? 'bg-green-500/60' : 'bg-gradient-to-b from-indigo-500/50 to-primary/50'
+            ]">
+              <div :class="[
+                'w-2 h-2 rounded-full -translate-x-[3px]',
+                syncStatus === 'idle' ? 'bg-white/80 animate-ping' :
+                  syncStatus === 'syncing' ? 'bg-primary-fixed shadow-[0_0_10px_rgba(129,199,132,1)] animate-[ping_0.5s_cubic-bezier(0,0,0.2,1)_infinite]' :
+                    syncStatus === 'success' ? 'bg-green-400 shadow-[0_0_10px_rgba(74,222,128,1)]' : 'bg-red-500'
+              ]"></div>
+              <div v-if="syncStatus === 'syncing'"
+                class="w-1.5 h-1.5 rounded-full bg-indigo-300 absolute -translate-x-[2px] -translate-y-8 animate-[bounce_0.8s_infinite] shadow-[0_0_8px_rgba(165,180,252,0.8)]">
+              </div>
             </div>
           </div>
         </div>

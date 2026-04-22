@@ -213,12 +213,71 @@ onMounted(() => {
 								洞悉作物脉搏，精准应对病虫挑战
 							</p>
 						</div>
+						<!-- CSS Rendered AI Diagnosis Visualization (No external image needed) -->
 						<div
-							class="w-full aspect-[4/5] rounded-[2rem] overflow-hidden bg-primary/10 shadow-glow-lg border border-primary/20">
-							<img alt="healthy green crops in a modern greenhouse"
-								class="w-full h-full object-cover opacity-90 transition-all duration-700 hover:scale-105"
-								data-alt="close up of vibrant green plant leaves in a bright, modern greenhouse with soft diffused sunlight"
-								src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPoF_jYJZRjyfDC1ffolHdnO3bEDS_r0U72POzFfr8CZ-16b4Fhuy6n5nmI22Nd962vXD52e0H90BRU38g_U8hrSyIiI4zZKD7d7mMssJx9uAFAdY-tqN4Vp2dWvT_FMcqyEX4loYvsV9x8RFc7MoOvjqHjSE3O58HhqVtw6HdbabcxgZc5jEbgmFHCZrY54eSGQBf_yIbiKNnuiIwkQhWscbaAbabPwzI7VFpuzzZKp8WOLVEh8D5KjeU23tE1A98_ujNwFvwJXM" />
+							class="w-full aspect-[4/5] rounded-[2rem] overflow-hidden bg-tech-darker relative border border-primary/30 shadow-[0_0_30px_rgba(46,125,50,0.15)] group flex items-center justify-center">
+							<!-- Background Matrix -->
+							<div
+								class="absolute inset-0 bg-[linear-gradient(to_right,#81c7841a_1px,transparent_1px),linear-gradient(to_bottom,#81c7841a_1px,transparent_1px)] bg-[size:20px_20px] opacity-30">
+							</div>
+
+							<!-- Abstract Leaf SVG Vector -->
+							<svg class="w-2/3 h-2/3 text-primary/20 relative z-10 transition-transform duration-700 group-hover:scale-105"
+								viewBox="0 0 100 100" fill="currentColor">
+								<!-- Healthy Leaf Base -->
+								<path d="M50 5 C50 5 95 30 95 70 C95 90 50 95 50 95 C50 95 5 90 5 70 C5 30 50 5 50 5 Z"
+									class="text-[#1a3820] fill-current" />
+								<path d="M50 95 L50 100" stroke="currentColor" stroke-width="3"
+									stroke-linecap="round" />
+
+								<!-- Leaf Veins -->
+								<path d="M50 5 L50 95 M50 20 L25 40 M50 35 L75 55 M50 50 L30 65 M50 65 L65 80"
+									stroke="rgba(129,199,132,0.15)" stroke-width="1.5" fill="none"
+									stroke-linecap="round" />
+								<path d="M50 80 L35 90" stroke="rgba(129,199,132,0.15)" stroke-width="1.5" fill="none"
+									stroke-linecap="round" />
+
+								<!-- Pathological Spots (Diseased areas) -->
+								<circle cx="32" cy="45" r="4.5" class="fill-yellow-600/80" />
+								<circle cx="34" cy="48" r="2.5" class="fill-amber-700/90" />
+
+								<circle cx="72" cy="62" r="7" class="fill-red-900/80" />
+								<circle cx="69" cy="64" r="3" class="fill-red-500/90" />
+								<circle cx="74" cy="59" r="2" class="fill-yellow-500/70" />
+
+								<circle cx="42" cy="82" r="3.5" class="fill-orange-700/80" />
+							</svg>
+
+							<!-- AI Scanner Line -->
+							<div class="absolute top-0 left-0 w-full h-[2px] bg-primary-fixed shadow-[0_0_20px_2px_#81c784] z-20"
+								style="animation: scan 4s ease-in-out infinite;"></div>
+							<div class="absolute top-0 left-0 w-full bg-primary/10 z-10 border-b border-primary/20 backdrop-blur-[1px]"
+								style="animation: scan-bg 4s ease-in-out infinite;"></div>
+
+							<!-- Floating Data Panels -->
+							<div
+								class="absolute top-12 right-6 bg-[#0a140d]/80 backdrop-blur-md border border-red-500/30 rounded-xl p-3 text-xs font-mono z-30 shadow-[0_0_15px_rgba(239,68,68,0.15)] transform transition-all duration-500 group-hover:-translate-y-1">
+								<div class="flex items-center gap-2 mb-1.5 text-red-400">
+									<span
+										class="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_5px_rgba(239,68,68,1)]"></span>
+									<span>病原靶点检出</span>
+								</div>
+								<div class="text-white/70">类型: <span class="text-white font-semibold">霜霉病 (Downy
+										Mildew)</span></div>
+								<div class="text-white/70">受损度: <span class="text-red-400 font-semibold">24.5%</span>
+								</div>
+							</div>
+
+							<div
+								class="absolute bottom-16 left-6 bg-[#0a140d]/80 backdrop-blur-md border border-primary/30 rounded-xl p-3 text-xs font-mono z-30 shadow-[0_0_15px_rgba(46,125,50,0.15)] transform transition-all duration-500 group-hover:translate-y-1">
+								<div class="text-white/60 mb-1 tracking-wider uppercase text-[10px]">GraphRAG Confidence
+								</div>
+								<div class="text-2xl font-bold text-primary-fixed font-headline">98.7%</div>
+								<div class="w-full bg-white/10 h-1 mt-2 rounded-full overflow-hidden">
+									<div class="bg-primary-fixed h-full w-[98.7%]"></div>
+								</div>
+							</div>
+
 						</div>
 					</div>
 				</div>
@@ -317,26 +376,85 @@ onMounted(() => {
 							合作中心的区域态势感知。
 						</p>
 						<div
-							class="w-full aspect-[4/3] bg-black/40 rounded-xl border border-primary/20 p-4 flex flex-col gap-2 relative overflow-hidden">
+							class="w-full aspect-[4/3] bg-black/40 rounded-xl border border-primary/20 p-4 relative overflow-hidden group">
+							<!-- Grid Background -->
 							<div class="absolute inset-0 bg-tech-grid bg-grid-size opacity-20"></div>
+
+							<!-- Header -->
 							<div
 								class="flex justify-between items-center pb-2 border-b border-primary/20 relative z-10">
-								<div class="h-2 w-16 bg-primary/50 rounded"></div>
-								<div class="h-2 w-8 bg-primary-fixed/60 rounded"></div>
+								<span class="text-[10px] font-mono text-primary-fixed/80 flex items-center gap-2">
+									<span
+										class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_5px_rgba(239,68,68,0.8)]"></span>
+									LIVE MONITORING
+								</span>
+								<div class="flex gap-1">
+									<div class="h-1 w-4 bg-primary/50 rounded animate-pulse"></div>
+									<div class="h-1 w-4 bg-primary/30 rounded"></div>
+									<div class="h-1 w-4 bg-primary/30 rounded"></div>
+								</div>
 							</div>
-							<div class="flex-grow flex gap-2 pt-2 relative z-10">
+
+							<!-- Radar Sweep Area -->
+							<div
+								class="flex-grow w-full h-[calc(100%-24px)] relative mt-2 rounded bg-primary/5 border border-primary/10 overflow-hidden isolate">
+
+								<!-- Radar Sweep Element -->
 								<div
-									class="w-1/3 h-full bg-primary/10 rounded border border-primary/20 flex items-end p-2 backdrop-blur-sm">
+									class="absolute left-1/2 top-1/2 w-[150%] h-[150%] -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0 animate-[spin_4s_linear_infinite]">
+									<div class="w-1/2 h-full bg-gradient-to-r from-transparent to-primary/30 origin-right right-1/2 absolute top-0"
+										style="clip-path: polygon(100% 50%, 0 0, 0 100%);"></div>
 									<div
-										class="w-full h-1/2 bg-primary/60 rounded-sm shadow-[0_0_10px_rgba(46,125,50,0.5)]">
+										class="absolute top-1/2 left-[50%] w-1/2 h-[2px] bg-gradient-to-r from-primary shadow-[0_0_10px_rgba(46,125,50,0.8)] to-transparent -translate-y-1/2 origin-left">
 									</div>
 								</div>
+
+								<!-- Radar Interface Circles -->
 								<div
-									class="w-2/3 h-full bg-primary/5 rounded border border-primary/20 flex items-center justify-center backdrop-blur-sm">
+									class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40">
+									<div class="w-3/4 h-3/4 rounded-full border border-primary border-dashed"></div>
 									<div
-										class="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin shadow-glow">
+										class="absolute w-1/2 h-1/2 rounded-full border border-primary border-dotted opacity-50">
 									</div>
+									<div
+										class="absolute w-1/4 h-1/4 rounded-full border border-primary border-dashed opacity-30">
+									</div>
+									<div class="absolute w-[2px] h-full bg-primary/20"></div>
+									<div class="absolute h-[2px] w-full bg-primary/20"></div>
 								</div>
+
+								<!-- Data Nodes / Hotspots -->
+								<div
+									class="absolute top-[25%] left-[25%] w-2 h-2 bg-primary rounded-full shadow-[0_0_10px_rgba(46,125,50,1)] z-10">
+									<div class="absolute inset-0 bg-primary rounded-full animate-ping opacity-75"></div>
+								</div>
+								<div
+									class="absolute top-[65%] left-[30%] w-1.5 h-1.5 bg-yellow-400 rounded-full shadow-[0_0_10px_rgba(250,204,21,1)] z-10">
+									<div class="absolute inset-0 bg-yellow-400 rounded-full animate-ping opacity-75"
+										style="animation-delay: 1s"></div>
+								</div>
+								<div
+									class="absolute top-[45%] right-[20%] w-2.5 h-2.5 bg-primary-fixed rounded-full shadow-[0_0_12px_rgba(129,199,132,1)] z-10">
+									<div class="absolute inset-0 bg-primary-fixed rounded-full animate-ping opacity-75"
+										style="animation-delay: 0.5s"></div>
+								</div>
+								<div
+									class="absolute bottom-[20%] right-[30%] w-2 h-2 bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,1)] z-10">
+									<div class="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-75"
+										style="animation-delay: 1.5s"></div>
+								</div>
+								<div class="absolute top-[35%] left-[60%] w-1.5 h-1.5 bg-primary rounded-full z-10">
+									<div class="absolute inset-0 bg-primary rounded-full animate-ping opacity-75"
+										style="animation-delay: 2s"></div>
+								</div>
+
+								<!-- Floating Labels -->
+								<div
+									class="absolute top-[20%] left-[29%] text-[9px] text-primary-fixed font-mono opacity-90 backdrop-blur-sm bg-black/60 px-1.5 py-0.5 rounded border border-primary/30 z-20">
+									上海: 正常</div>
+								<div
+									class="absolute bottom-[16%] right-[34%] text-[9px] text-red-400 font-mono opacity-90 backdrop-blur-sm bg-black/60 px-1.5 py-0.5 rounded border border-red-500/40 z-20">
+									江西: 病害高发预警</div>
 							</div>
 						</div>
 					</div>
@@ -910,3 +1028,41 @@ onMounted(() => {
 
 	</div>
 </template>
+
+<style scoped>
+@keyframes scan {
+
+	0%,
+	100% {
+		top: 0%;
+		opacity: 0;
+	}
+
+	10%,
+	90% {
+		opacity: 1;
+	}
+
+	50% {
+		top: 100%;
+	}
+}
+
+@keyframes scan-bg {
+
+	0%,
+	100% {
+		height: 0%;
+		opacity: 0;
+	}
+
+	10%,
+	90% {
+		opacity: 1;
+	}
+
+	50% {
+		height: 100%;
+	}
+}
+</style>
