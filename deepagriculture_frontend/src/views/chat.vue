@@ -4,6 +4,14 @@ import { postChat, postIdentify, postChatStream, postIdentifyStream } from "@/se
 import { marked } from "marked";
 import DOMPurify from "dompurify";
 
+// 在你的 import 语句下方添加
+marked.setOptions({
+  gfm: true,      // 启用 GitHub 风格的 Markdown（支持表格）
+  breaks: true,   // 启用自动换行（把 \n 转换为 <br>）
+  mangle: false,  // 防止一些转义问题
+  headerIds: false
+});
+
 function getOrCreateSessionId() {
   const key = "deepagriculture.session_id";
   const existing = localStorage.getItem(key);
@@ -517,7 +525,7 @@ function onEnterSend(e) {
       </div>
     </main>
   </div>
-</template>
+</template>s
 
 <style scoped>
 @keyframes fadeIn {
@@ -536,4 +544,42 @@ function onEnterSend(e) {
   transform: scale(0.97);
   transition: transform 0.1s cubic-bezier(0.25, 1, 0.5, 1);
 }
+
+/* Markdown 增强样式 */
+:deep(.prose table) {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.9em;
+}
+
+:deep(.prose th), :deep(.prose td) {
+  border: 1px solid #e2e8f0;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+:deep(.prose th) {
+  background-color: #f8fafc;
+  font-weight: 600;
+}
+
+:deep(.prose tr:nth-child(even)) {
+  background-color: #f1f5f9;
+}
+
+:deep(.prose ul), :deep(.prose ol) {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+:deep(.prose li) {
+  margin-bottom: 0.25rem;
+}
+
+:deep(.prose strong) {
+  color: #1e293b;
+  font-weight: 700;
+}
+
 </style>

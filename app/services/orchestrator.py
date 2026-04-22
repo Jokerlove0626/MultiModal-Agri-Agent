@@ -11,6 +11,11 @@ import datetime
 from app.db.session import SessionLocal # 👈 引入水龙头
 from app.db.models import PestRecord   # 👈 引入表模型
 
+import asyncio
+import hashlib
+import redis.asyncio as redis
+redis_client = redis.Redis(host='127.0.0.1', port=6379, db=0, decode_responses=True)
+
 class RAGOrchestrator:
     def __init__(self):
         print("⏳ 正在唤醒四大底层兵种...")
@@ -30,78 +35,99 @@ class RAGOrchestrator:
         else:
             print("⚠️ 警告：未检测到 DASHSCOPE_API_KEY，流式输出可能失败！")
     async def generate_answer_stream(self, user_query: str, session_id: str = "default_session", source: str = "text", province: str = "未知", city: str = "未知"):
-        """核心文本链路编排 (SSE 流式输出版)"""
+        """核心文本链路编排 (SSE 流式输出版 + Redis 极速缓存 + 专家诊断版)"""
         
-        # 为了保证 SSE 格式，遇到提前拦截拦截时，我们需要用 yield 吐出文字并结束
-        # 1. 拿记忆
+        # 1. 🔑 准备缓存 Key (必须放在最前面)
+        query_hash = hashlib.md5(user_query.strip().encode('utf-8')).hexdigest()
+        cache_key = f"qa_cache:{query_hash}"
+
+        # 2. ⚡ Redis 极速拦截逻辑
+        try:
+            cached_answer = await redis_client.get(cache_key)
+            if cached_answer:
+                print(f"⚡ [Redis 缓存命中] 极速返回: {user_query}")
+                yield "data: ⚡ **[极速响应模式]** 命中历史诊断缓存...<br><br>\n\n"
+                
+                chunk_size = 5
+                for i in range(0, len(cached_answer), chunk_size):
+                    chunk = cached_answer[i:i+chunk_size]
+                    safe_chunk = chunk.replace('\n', '<br>')
+                    yield f"data: {safe_chunk}\n\n"
+                    await asyncio.sleep(0.01)
+                
+                yield "data: [DONE]\n\n"
+                return 
+        except Exception as e:
+            print(f"⚠️ Redis 缓存读取失败: {e}")
+
+        # 3. 🔍 检索逻辑 (常规链路)
         recent_history = self.memory.get_recent_history(session_id)
         is_follow_up = False
 
         yield "data: 🔍 正在检索图谱与向量知识库...<br>\n\n"
         await asyncio.sleep(0.1)
 
-        # 2. 查向量
         best_score, matched_disease = self.vector_db.search_and_rerank(user_query)
         
-        # 👇 新增：让终端把底牌亮出来！你以后在终端就能看到为什么被拦截了
-        print(f"🧐 [诊断路由] 用户输入: '{user_query}' | 向量最高得分: {best_score:.2f} | 匹配病害: {matched_disease}")
-
-        # 3. 意图拦截护栏 (咱们在测试期，干脆把门槛降到极低的 0.50！)
+        # 4. 路由拦截与提词组装
         if best_score < 0.50:  
-            print("🛑 [拦截护栏] 得分太低，直接拒绝，不调用千问大模型！")
-            if source == "vision":
-                # ⚠️ 注意：这里我直接在 Python 里把所有的 \n 全换成了 HTML 的 <br>
-                msg = f"系统提取到的症状为：【{user_query}】<br><br>⚠️ **知识库未收录**：当前图谱中暂无该病害的详细处方。"
-                yield f"data: {msg}\n\n"
-                yield "data: [DONE]\n\n"
-                return
-            elif self.memory.has_history(session_id):
-                print("🔄 [意图路由] 检索得分过低，放行至多轮对话！")
-                is_follow_up = True
-                matched_disease = "上下文追问 (需大模型仲裁)"
-            else:
-                # ⚠️ 注意：这里也全换成了 <br>，绝对不会再被前端切断了！
-                msg = f"系统提取到的症状为：【{user_query}】<br><br>⚠️ **诊断置信度不足 ({best_score:.2f})**：未能匹配到相关病害。"
-                yield f"data: {msg}\n\n"
-                yield "data: [DONE]\n\n"
-                return
+            # ... (此处省略你的得分过低拦截逻辑，保持你原来的即可) ...
+            msg = f"⚠️ **诊断置信度不足 ({best_score:.2f})**"
+            yield f"data: {msg}\n\n"
+            yield "data: [DONE]\n\n"
+            return
 
-        # 4. 查图谱组装提示词
-        if is_follow_up:
-            system_prompt = """你是一位严谨且亲和的农业植保专家。
-【当前状态】：用户正在进行上下文追问。
-【最高安全指令】：
-1. 请直接结合【历史对话】顺畅、自然地回答用户的问题。
-2. 若用户突然询问全新的病害，必须严格回复：“抱歉，当前知识库尚未收录该病害的资料，系统拒绝提供未经验证的处方。”
-3. 绝对不要在回复中暴露你的分析过程或提及“系统指令”。”"""
-            context_str = "本次提问为上下文追问，无新增参考资料，请完全依赖历史对话作答。"
-        else:
-            graph_data = self.graph_db.search_disease_prescription(matched_disease)
-            if not graph_data:
-                msg = f"识别为【{matched_disease}】，但无详细处方。"
-                yield f"data: {msg}\n\n"
-                yield "data: [DONE]\n\n"
-                return
-                
-            self._log_pest_occurrence(matched_disease, province, city)
+        # 获取图谱数据
+        graph_data = self.graph_db.search_disease_prescription(matched_disease)
+        if not graph_data:
+            yield f"data: 识别为【{matched_disease}】，但无详细处方。\n\n"
+            yield "data: [DONE]\n\n"
+            return
+            
+        self._log_pest_occurrence(matched_disease, province, city)
 
-            context_str = f"【诊断】: {matched_disease}\n【摘要】: {graph_data['summary']}\n【农业】: {graph_data['agricultural']}\n【生物】: {graph_data['biological']}\n【化学】: {graph_data['chemicals']}"
+        # 组装上下文
+        context_str = f"【诊断】: {matched_disease}\n【摘要】: {graph_data['summary']}\n【农业】: {graph_data['agricultural']}\n【生物】: {graph_data['biological']}\n【化学】: {graph_data['chemicals']}"
 
-            system_prompt = """你是一位严谨的农业植保专家。
-【最高限制指令】：
-1. 优先使用【本次检索资料】与【历史对话】中提供的信息回答问题。
-2. 严禁自行补充未在资料中出现的农药建议。
-3. 若给出药方，请整理成 Markdown 表格。
-4. 绝对不要在回复中暴露你的分析过程。"""
+        # 🌟 专家级 System Prompt (注意保持这里的缩进)
+        system_prompt = f"""你是一位享誉业内的【首席农业植保专家】。
+你现在正在为农户开具一份正式的《植物病虫害专家诊断处方报告》。
+
+[处方报告标准格式]：
+# 🛡️ 专家诊断处方单
+
+### 📍 1. 诊断结论
+- **确诊对象**：{matched_disease}
+- **核心判定**：(根据资料简述该病害威胁)
+
+### 🔍 2. 症状溯源
+(基于资料，简要分析特征)
+
+### 💊 3. 综合防治集成方案
+---
+#### (1) 基础农业措施
+* (列出要点)
+
+#### (2) 精准化学干预
+| 药剂名称 | 推荐浓度 | 施药时机 | 作用目标 |
+| :--- | :--- | :--- | :--- |
+| (药剂) | (浓度) | (时机) | (防效) |
+
+### ⚠️ 4. 专家风险提示
+- (提示安全与监测要点)
+
+---
+(专家鼓励语)"""
 
         yield "data: 🧠 检索完毕，千问大模型正在生成诊断报告...<br><br>\n\n"
 
-        # 5. 拼装大模型并呼叫
-        messages = [{"role": "system", "content": system_prompt}]
-        messages.extend(recent_history)
-        messages.append({"role": "user", "content": f"用户提问：{user_query}\n\n【本次检索资料】：\n{context_str}"})
+        # 5. 呼叫大模型
+        messages = [
+            {"role": "system", "content": system_prompt},
+            *recent_history,
+            {"role": "user", "content": f"用户提问：{user_query}\n\n【资料】：{context_str}"}
+        ]
 
-# 👇 核心流式处理区
         full_answer = "" 
         try:
             response = await self.stream_llm_client.chat.completions.create(
@@ -113,22 +139,24 @@ class RAGOrchestrator:
             async for chunk in response:
                 if chunk.choices and chunk.choices[0].delta.content:
                     char = chunk.choices[0].delta.content
-                    full_answer += char # 攒字（存进记忆的还是纯净的 \n）
-                    
-                    # 🚀 终极杀招：直接把大模型的换行替换成网页换行 <br>
-                    # 这样既不会破坏 SSE 协议，前端也不会出现奇怪的 data: 了！
+                    full_answer += char 
                     safe_char = char.replace('\n', '<br>')
                     yield f"data: {safe_char}\n\n"
-                    
-            # 6. 存记忆 
+
+            
+            # 6. 写入记忆与 Redis 缓存
             self.memory.save_interaction(session_id, user_query, full_answer)
-            
+            if full_answer:
+                try:
+                    await redis_client.set(cache_key, full_answer, ex=86400)
+                    print(f"💾 [Redis 缓存写入成功] Key: {cache_key}")
+                except Exception as cache_err:
+                    print(f"⚠️ Redis 写入失败: {cache_err}")
+
         except Exception as e:
-            import traceback
-            traceback.print_exc()
-            yield f"data: \n\n⚠️ 大模型连接异常: {str(e)}\n\n"
+            yield f"data: ⚠️ 大模型异常: {str(e)}\n\n"
             
-        # 结束推流信号
+        # 🏁 最终结束信号 (必须独立一行)
         yield "data: [DONE]\n\n"
 
 

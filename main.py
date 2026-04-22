@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
+
 # 👇 1. 导入咱们刚刚重构好的“总机” (注意去掉了 s，变量变成了 api_router)
 from app.api.router import api_router
 from app.services.orchestrator import RAGOrchestrator
@@ -11,6 +12,11 @@ from app.services.orchestrator import RAGOrchestrator
 
 from app.db.session import engine, Base
 from app.db import models
+
+import redis.asyncio as redis
+redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
+
+
 
 # 每次系统启动时，检查 MySQL 里有没有这些表，没有就自动建表！
 Base.metadata.create_all(bind=engine)
