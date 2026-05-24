@@ -5,7 +5,9 @@
       "Bash(claude plugin *)",
       "Bash(python -c ' *)",
       "Bash(npm run *)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(npx kill-port *)",
+      "Bash(npx vite *)"
     ]
   }
 }

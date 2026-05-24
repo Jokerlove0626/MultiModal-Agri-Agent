@@ -42,7 +42,7 @@ onUnmounted(() => {
 		id="main-nav"
 		:class="[
 			'backdrop-blur-2xl font-headline tracking-tight sticky top-0 w-full z-50 transition-all duration-500 flex justify-between items-center px-8 py-4 max-w-screen-2xl mx-auto border-b border-transparent',
-			isScrolled ? 'glass-card shadow-glow' : 'bg-transparent text-white/90',
+			isScrolled || !isHomePage ? 'glass-card shadow-glow' : 'bg-transparent text-white/90',
 			navVisible ? 'translate-y-0 opacity-100 h-auto' : '-translate-y-full opacity-0 h-0 !p-0 !min-h-0 overflow-hidden',
 		]"
 	>
@@ -60,7 +60,7 @@ onUnmounted(() => {
 					class="font-semibold block cursor-pointer transition-colors"
 					active-class="text-tech-blue border-b-2 border-tech-blue pb-1"
 					exact-active-class="text-tech-blue border-b-2 border-tech-blue pb-1"
-					:class="[isScrolled ? 'text-on-surface/60' : 'text-white/70', 'hover:text-tech-blue']"
+					:class="[isScrolled || !isHomePage ? 'text-on-surface/60' : 'text-white/70', 'hover:text-tech-blue']"
 				>
 					首页
 				</router-link>
@@ -70,7 +70,7 @@ onUnmounted(() => {
 					to="/chat"
 					class="font-semibold block cursor-pointer transition-colors"
 					active-class="text-tech-blue border-b-2 border-tech-blue pb-1"
-					:class="[isScrolled ? 'text-on-surface/60' : 'text-white/70', 'hover:text-tech-blue']"
+					:class="[isScrolled || !isHomePage ? 'text-on-surface/60' : 'text-white/70', 'hover:text-tech-blue']"
 				>
 					问答
 				</router-link>
@@ -80,7 +80,7 @@ onUnmounted(() => {
 					to="/graph"
 					class="font-semibold block cursor-pointer transition-colors"
 					active-class="text-tech-blue border-b-2 border-tech-blue pb-1"
-					:class="[isScrolled ? 'text-on-surface/60' : 'text-white/70', 'hover:text-tech-blue']"
+					:class="[isScrolled || !isHomePage ? 'text-on-surface/60' : 'text-white/70', 'hover:text-tech-blue']"
 				>
 					知识图谱
 				</router-link>
@@ -90,7 +90,7 @@ onUnmounted(() => {
 					to="/monitor"
 					class="font-semibold block cursor-pointer transition-colors"
 					active-class="text-tech-blue border-b-2 border-tech-blue pb-1"
-					:class="[isScrolled ? 'text-on-surface/60' : 'text-white/70', 'hover:text-tech-blue']"
+					:class="[isScrolled || !isHomePage ? 'text-on-surface/60' : 'text-white/70', 'hover:text-tech-blue']"
 				>
 					全国数据监控
 				</router-link>
@@ -100,7 +100,7 @@ onUnmounted(() => {
 					to="/knowledge"
 					class="font-semibold block cursor-pointer transition-colors"
 					active-class="text-tech-blue border-b-2 border-tech-blue pb-1"
-					:class="[isScrolled ? 'text-on-surface/60' : 'text-white/70', 'hover:text-tech-blue']"
+					:class="[isScrolled || !isHomePage ? 'text-on-surface/60' : 'text-white/70', 'hover:text-tech-blue']"
 				>
 					知识库
 				</router-link>
@@ -110,12 +110,12 @@ onUnmounted(() => {
 		<div class="flex items-center gap-4">
 			<div class="hidden md:flex gap-2">
 				<button
-					:class="['w-10 h-10 flex items-center justify-center rounded-full transition-all duration-400 scale-95 active:scale-90', isScrolled ? 'text-primary hover:bg-primary/10' : 'text-white/70 hover:bg-white/10']"
+					:class="['w-10 h-10 flex items-center justify-center rounded-full transition-all duration-400 scale-95 active:scale-90', isScrolled || !isHomePage ? 'text-primary hover:bg-primary/10' : 'text-white/70 hover:bg-white/10']"
 				>
 					<span class="material-symbols-outlined">account_circle</span>
 				</button>
 				<button
-					:class="['w-10 h-10 flex items-center justify-center rounded-full transition-all duration-400 scale-95 active:scale-90', isScrolled ? 'text-primary hover:bg-primary/10' : 'text-white/70 hover:bg-white/10']"
+					:class="['w-10 h-10 flex items-center justify-center rounded-full transition-all duration-400 scale-95 active:scale-90', isScrolled || !isHomePage ? 'text-primary hover:bg-primary/10' : 'text-white/70 hover:bg-white/10']"
 				>
 					<span class="material-symbols-outlined">language</span>
 				</button>
