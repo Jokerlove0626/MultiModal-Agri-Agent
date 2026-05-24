@@ -27,7 +27,7 @@ onUnmounted(() => {
 		<div
 			class="text-2xl font-bold text-primary flex items-center gap-2 cursor-pointer hover:scale-95 active:scale-90 transition-transform cubic-bezier(0.25,1,0.5,1)"
 		>
-			DeepAgriculture
+			<span class="text-tech-blue">Deep</span><span>Agriculture</span>
 			<span class="text-sm font-body text-primary/70 font-normal hidden md:inline-block ml-2">智农大夫</span>
 		</div>
 
@@ -36,9 +36,9 @@ onUnmounted(() => {
 				<router-link
 					to="/"
 					class="font-semibold block cursor-pointer transition-colors"
-					active-class="text-primary border-b-2 border-primary pb-1"
-					exact-active-class="text-primary border-b-2 border-primary pb-1"
-					:class="['text-on-surface/60 hover:text-primary']"
+					active-class="text-tech-blue border-b-2 border-tech-blue pb-1"
+					exact-active-class="text-tech-blue border-b-2 border-tech-blue pb-1"
+					:class="['text-on-surface/60 hover:text-tech-blue']"
 				>
 					首页
 				</router-link>
@@ -47,8 +47,8 @@ onUnmounted(() => {
 				<router-link
 					to="/chat"
 					class="font-semibold block cursor-pointer transition-colors"
-					active-class="text-primary border-b-2 border-primary pb-1"
-					:class="['text-on-surface/60 hover:text-primary']"
+					active-class="text-tech-blue border-b-2 border-tech-blue pb-1"
+					:class="['text-on-surface/60 hover:text-tech-blue']"
 				>
 					问答
 				</router-link>
@@ -57,8 +57,8 @@ onUnmounted(() => {
 				<router-link
 					to="/graph"
 					class="font-semibold block cursor-pointer transition-colors"
-					active-class="text-primary border-b-2 border-primary pb-1"
-					:class="['text-on-surface/60 hover:text-primary']"
+					active-class="text-tech-blue border-b-2 border-tech-blue pb-1"
+					:class="['text-on-surface/60 hover:text-tech-blue']"
 				>
 					知识图谱
 				</router-link>
@@ -67,8 +67,8 @@ onUnmounted(() => {
 				<router-link
 					to="/monitor"
 					class="font-semibold block cursor-pointer transition-colors"
-					active-class="text-primary border-b-2 border-primary pb-1"
-					:class="['text-on-surface/60 hover:text-primary']"
+					active-class="text-tech-blue border-b-2 border-tech-blue pb-1"
+					:class="['text-on-surface/60 hover:text-tech-blue']"
 				>
 					全国数据监控
 				</router-link>
@@ -77,8 +77,8 @@ onUnmounted(() => {
 				<router-link
 					to="/knowledge"
 					class="font-semibold block cursor-pointer transition-colors"
-					active-class="text-primary border-b-2 border-primary pb-1"
-					:class="['text-on-surface/60 hover:text-primary']"
+					active-class="text-tech-blue border-b-2 border-tech-blue pb-1"
+					:class="['text-on-surface/60 hover:text-tech-blue']"
 				>
 					知识库
 				</router-link>
@@ -100,7 +100,7 @@ onUnmounted(() => {
 			</div>
 			<router-link
 				to="/chat"
-				class="bg-primary text-white px-6 py-2.5 rounded-full font-medium hover:shadow-glow hover:scale-105 transition-all duration-400 ease-[cubic-bezier(0.25,1,0.5,1)]"
+				class="bg-accent-orange text-white px-6 py-2.5 rounded-full font-medium hover:shadow-glow-orange hover:scale-105 transition-all duration-400 ease-[cubic-bezier(0.25,1,0.5,1)]"
 			>
 				进入实验室
 			</router-link>
