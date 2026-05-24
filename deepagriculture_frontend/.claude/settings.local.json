@@ -4,7 +4,8 @@
       "Bash(claude plugins *)",
       "Bash(claude plugin *)",
       "Bash(python -c ' *)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(curl *)"
     ]
   }
 }

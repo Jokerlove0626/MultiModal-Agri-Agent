@@ -130,19 +130,19 @@ const showTopNav = computed(() => route.name !== 'chat');
   transition: all 0.5s ease;
 }
 .timeline-item-active .timeline-line {
-  stroke: rgba(129, 199, 132, 0.8);
-  filter: drop-shadow(0 0 4px rgba(129, 199, 132, 0.6));
+  stroke: rgba(66, 165, 245, 0.8);
+  filter: drop-shadow(0 0 4px rgba(66, 165, 245, 0.6));
 }
 .timeline-icon-container {
   transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
 }
 .timeline-item-active .timeline-icon-container {
-  box-shadow: 0 0 20px rgba(129, 199, 132, 0.6);
-  border-color: #81c784;
+  box-shadow: 0 0 20px rgba(25, 118, 210, 0.6);
+  border-color: #42A5F5;
   transform: scale(1.1);
 }
 .timeline-item-active .timeline-icon {
-  color: #81c784;
+  color: #42A5F5;
 }
 .timeline-content {
   transition: all 0.5s ease;

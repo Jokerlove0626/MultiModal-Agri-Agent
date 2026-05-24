@@ -22,7 +22,7 @@
             <img
               alt="healthy green crops in a modern greenhouse"
               class="w-full h-full object-cover opacity-90 transition-all duration-700 hover:scale-105"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuDPoF_jYJZRjyfDC1ffolHdnO3bEDS_r0U72POzFfr8CZ-16b4Fhuy6n5nmI22Nd962vXD52e0H90BRU38g_U8hrSyIiI4zZKD7d7mMssJx9uAFAdY-tqN4Vp2dWvT_FMcqyEX4loYvsV9x8RFc7MoOvjqHjSE3O58HhqVtw6HdbabcxgZc5jEbgmFHCZrY54eSGQBf_yIbiKNnuiIwkQhWscbaAbabPwzI7VFpuzzZKp8WOLVEh8D5KjeU23tE1A98_ujNwFvwJXM"
+              src="/img/1.png"
             />
           </div>
         </div>
