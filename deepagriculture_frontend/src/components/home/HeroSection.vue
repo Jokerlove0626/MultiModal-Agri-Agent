@@ -9,25 +9,27 @@ const statBadges = [
 
 <template>
   <header class="relative min-h-[105vh] flex items-center overflow-hidden hero-lab">
-    <!-- ===== Deep Green-Blue Background (not pure black) ===== -->
-    <div class="absolute inset-0 bg-[#071a0f]"></div>
+    <!-- ===== Rich Forest-Green Background ===== -->
+    <div class="absolute inset-0 bg-[#0d2a1a]"></div>
 
-    <!-- Ambient depth gradient -->
-    <div class="absolute inset-0 bg-gradient-to-b from-[#0a1f13] via-[#0d2216] to-[#1a4a2e]"></div>
+    <!-- Ambient depth gradient (lighter, more vibrant) -->
+    <div class="absolute inset-0 bg-gradient-to-b from-[#123820] via-[#18452c] to-[#225e3d]"></div>
 
     <!-- Hexagonal Grid (precision agriculture) -->
-    <div class="absolute inset-0 hex-grid-bg opacity-[0.07] pointer-events-none"></div>
+    <div class="absolute inset-0 hex-grid-bg opacity-[0.09] pointer-events-none"></div>
 
     <!-- Tech dot overlay -->
-    <div class="absolute inset-0 tech-dot-bg opacity-20 pointer-events-none"></div>
+    <div class="absolute inset-0 tech-dot-bg opacity-25 pointer-events-none"></div>
 
-    <!-- Atmospheric Glows -->
-    <div class="absolute top-[-15%] right-[-5%] w-[650px] h-[650px] bg-tech-blue/10 rounded-full blur-[130px] pointer-events-none"></div>
-    <div class="absolute bottom-[-10%] left-[-5%] w-[550px] h-[550px] bg-primary/8 rounded-full blur-[110px] pointer-events-none"></div>
-    <div class="absolute top-[25%] left-[45%] w-[350px] h-[350px] bg-tech-cyan/5 rounded-full blur-[90px] pointer-events-none"></div>
+    <!-- Atmospheric Glows (brighter) -->
+    <div class="absolute top-[-15%] right-[-5%] w-[650px] h-[650px] bg-tech-blue/15 rounded-full blur-[130px] pointer-events-none"></div>
+    <div class="absolute bottom-[-10%] left-[-5%] w-[550px] h-[550px] bg-primary/12 rounded-full blur-[110px] pointer-events-none"></div>
+    <div class="absolute top-[25%] left-[45%] w-[350px] h-[350px] bg-tech-cyan/8 rounded-full blur-[90px] pointer-events-none"></div>
+    <!-- Extra central warm glow -->
+    <div class="absolute top-[40%] left-[30%] w-[450px] h-[450px] bg-tech-blue/6 rounded-full blur-[150px] pointer-events-none"></div>
 
     <!-- Bottom fade-to-light gradient (bridges to PainPoints) -->
-    <div class="absolute bottom-0 left-0 right-0 h-96 bg-gradient-to-t from-surface/70 via-surface/30 to-transparent pointer-events-none z-[3]"></div>
+    <div class="absolute bottom-0 left-0 right-0 h-96 bg-gradient-to-t from-surface/60 via-surface/25 to-transparent pointer-events-none z-[3]"></div>
 
     <!-- Full-width Scan Line -->
     <div class="absolute inset-0 pointer-events-none z-[2] overflow-hidden">
@@ -256,7 +258,7 @@ const statBadges = [
 <style scoped>
 /* === Hero Lab Container === */
 .hero-lab {
-  background: radial-gradient(ellipse at 60% 45%, rgba(13, 55, 25, 0.7) 0%, #071a0f 55%);
+  background: radial-gradient(ellipse at 60% 45%, rgba(30, 85, 50, 0.7) 0%, #0d2a1a 55%);
 }
 
 /* === Hexagonal Grid === */
