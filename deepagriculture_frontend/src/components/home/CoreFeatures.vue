@@ -102,5 +102,7 @@
 
       </div>
     </div>
+    <!-- Bottom fade: tech-dark -> #0d1f11 -->
+    <div class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#0d1f11]/60 to-transparent pointer-events-none z-[2]"></div>
   </section>
 </template>

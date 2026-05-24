@@ -72,5 +72,7 @@
         </div>
       </div>
     </div>
+    <!-- Bottom fade: surface -> tech-dark -->
+    <div class="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-tech-dark/90 via-tech-dark/40 to-transparent pointer-events-none z-[2]"></div>
   </section>
 </template>

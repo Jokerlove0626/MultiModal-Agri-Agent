@@ -10,14 +10,14 @@ let ctx = null;
 let width = 0;
 let height = 0;
 
-const PARTICLE_COUNT = 80;
-const CONNECTION_DIST = 150;
+const PARTICLE_COUNT = 120;
+const CONNECTION_DIST = 160;
 const PARTICLE_COLORS = [
-  'rgba(25, 118, 210, 0.5)',   // tech-blue
-  'rgba(66, 165, 245, 0.4)',   // tech-blue-light
-  'rgba(0, 188, 212, 0.35)',   // tech-cyan
-  'rgba(129, 199, 132, 0.3)',  // light green
-  'rgba(46, 125, 50, 0.25)',   // primary green
+  'rgba(66, 165, 245, 0.55)',   // tech-blue-light (brighter)
+  'rgba(25, 118, 210, 0.5)',    // tech-blue
+  'rgba(0, 188, 212, 0.45)',    // tech-cyan
+  'rgba(129, 199, 132, 0.3)',   // light green
+  'rgba(100, 200, 220, 0.35)',  // blue-cyan mix
 ];
 
 function createParticles() {
@@ -69,7 +69,7 @@ function draw() {
       const dist = Math.sqrt(dx * dx + dy * dy);
 
       if (dist < CONNECTION_DIST) {
-        const opacity = (1 - dist / CONNECTION_DIST) * 0.15;
+        const opacity = (1 - dist / CONNECTION_DIST) * 0.22;
         ctx.beginPath();
         ctx.moveTo(particles[i].x, particles[i].y);
         ctx.lineTo(particles[j].x, particles[j].y);

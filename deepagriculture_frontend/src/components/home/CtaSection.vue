@@ -49,5 +49,7 @@
         </div>
       </div>
     </div>
+    <!-- Bottom fade: CTA blue -> tech-darker -->
+    <div class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-tech-darker/70 to-transparent pointer-events-none z-[2]"></div>
   </section>
 </template>
