@@ -2,7 +2,7 @@
 import AnimatedCounter from './AnimatedCounter.vue';
 
 const counters = [
-  { icon: 'eco', target: 120, suffix: '+', label: '覆盖作物 (种)' },
+  { icon: 'eco', target: 600, suffix: '+', label: '覆盖作物 (种)' },
   { icon: 'bug_report', target: 2000, suffix: '+', label: '覆盖病虫害 (种)' },
   { icon: 'menu_book', target: 18000, suffix: '+', label: '专业知识库 (篇)' },
   { icon: 'image', target: 1200, suffix: '万+', label: '标注训练图片 (张)' },

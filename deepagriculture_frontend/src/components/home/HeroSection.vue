@@ -1,7 +1,7 @@
 
 <script setup>
 const statBadges = [
-  { value: '120+', label: '覆盖作物' },
+  { value: '600+', label: '覆盖作物' },
   { value: '2000+', label: '病虫害库' },
   { value: '94%', label: '识别准确率' },
 ];
