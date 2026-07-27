@@ -90,13 +90,14 @@ class RAGOrchestrator:
         context_str = f"【诊断】: {matched_disease}\n【摘要】: {graph_data['summary']}\n【农业】: {graph_data['agricultural']}\n【生物】: {graph_data['biological']}\n【化学】: {graph_data['chemicals']}"
 
         # 🌟 专家级 System Prompt (注意保持这里的缩进)
+# 🌟 专家级 System Prompt (修改模板部分的指令)
         system_prompt = f"""你是一位严谨的农业植保专家。
 你现在的任务是输出一份《植物病虫害专家诊断处方单》。
 
 【最高格式准则】：
 1. 必须原样复刻下方的 [处方单骨架模板]，严格使用 `>` 符号生成高亮引用块。
 2. 药方必须使用标准 Markdown 表格整理，表格外围不要加 `>` 符号。
-3. 严禁自行补充未在资料中出现的建议，严禁暴露分析过程，严禁伪造署名和日期。
+3. 如果用户提问中(如视觉提取)自带了明确的病名，请优先将其作为确诊对象。
 
 ---
 [请严格按照以下骨架模板进行填空输出]：
@@ -104,18 +105,18 @@ class RAGOrchestrator:
 ## 🛡️ 专家诊断处方单
 
 > **📍 1. 诊断结论**
-> **确诊对象**：{matched_disease}
+> **确诊对象**：(在此填写你综合判定的病害名称)
 > **核心判定**：(在此简述该病害威胁，1句话)
 
 > **🔍 2. 症状溯源**
-> (在此简要分析特征)
+> (在此简要分析用户的症状特征，切勿生搬硬套，必须实事求是)
 
 > **💊 3. 综合防治集成方案**
 > **(1) 基础农业措施**
 > * (填写措施1)
 > * (填写措施2)
 
-**🎯 精准化学干预** (请在下方直接输出表格，不要加 > 符号)
+**🎯 精准化学干预**
 
 | 药剂名称 | 推荐浓度 | 施药时机 | 作用目标 |
 | :--- | :--- | :--- | :--- |
@@ -250,49 +251,55 @@ class RAGOrchestrator:
 {user_msg_hint}
 {crop_hint}
 
-【任务说明】：结合记录和图片，精准识别作物种类和病灶特征。
+【任务说明】：结合记录和图片，精准识别作物种类和病灶的客观形态特征。
 为了配合下游图谱检索，你必须且只能输出【纯文本检索词】。
 
 【强制输出格式】：
-单行文本：作物名称 病害名称(若能确定) 核心症状描述
-（示例：水稻 纹枯病 叶片出现不规则褐色斑块边缘模糊）
+[作物名称] [核心症状描述]
+（示例：水稻 叶片出现不规则褐色斑块边缘模糊）
 
 【严格禁令】：
-禁止输出任何分析过程、问候语、标点符号或换行符。如果非植物，仅输出“非植物”。"""
+1. 绝对禁止输出具体的病害名称（如“稻瘟病”、“苗疫病”等），你只需描述客观看到的症状！
+2. 禁止输出任何分析过程、问候语或标点符号。"""
 
-            # 1. 纯文本状态提示：直接以 data: 开头
-            yield f'data: 👀 正在仔细观察植物叶片...\n\n'
+            # 💡 修复1：使用 \\n\\n 强制前端进行 Markdown 块级换行，防止与后续的 Markdown 标题、表格粘连
+            yield f'data: 👀 正在仔细观察植物叶片...\\n\\n\n\n'
 
             symptom = ""
             async for delta in self.llm.chat_vision_stream(sys_prompt, base64_image):
                 symptom += delta
-                # 依然保持沉默，不把提取的废话吐给前端
+
+            # 💡 修复2：强制清洗视觉模型可能偷偷附带的换行、回车和多余空格
+            symptom = symptom.replace('\n', ' ').replace('\r', '').strip()
 
             if "非植物" in symptom:
-                yield f'data: ❌ 图片看起来不像植物，请上传作物病害图片。\n\n'
+                yield f'data: ❌ 图片看起来不像植物，请上传作物病害图片。\\n\\n\n\n'
                 return
 
-            # 2. 视觉分析完成，过渡提示
-            yield f'data: 🔍 症状提取完毕，正在匹配全国知识图谱...\n\n'
+            # 同样补充换行符
+            yield f'data: 🔍 症状提取完毕：【{symptom}】，正在匹配全国知识图谱...\\n\\n\n\n'
 
-            # 3. 🚀 极其关键：直接透传底层 RAG 引擎的原生数据流
-            # 因为 generate_answer_stream 自己已经包装了 "data: xxx \n\n"，所以直接 yield 即可！
+# 净化：把特征词两边的杂质彻底清空，只留纯纯的病名和症状！
+            pure_symptom = symptom.replace('\n', ' ').replace('\r', '').strip()
+
+            yield f'data: 🔍 症状提取完毕：【{pure_symptom}】，正在匹配全国知识图谱...\\n\\n\n\n'
+
+            # 🚀 透传底层 RAG 引擎 (只传纯净的特征词去查向量库)
             async for chunk in self.generate_answer_stream(
-                user_query=symptom,       
+                user_query=pure_symptom,  # 👈 必须只传这个，向量计算才会精准！      
                 session_id=session_id, 
                 source="vision",          
                 province=province,        
-                city=city                 
+                city=city                
             ):
                 yield chunk
 
-            # 4. 结束标志（如果你前端是用 [DONE] 来判断结束的话）
-            yield f'data: [DONE]\n\n'
-            
         except Exception as e:
             import traceback
             traceback.print_exc()
             yield f'data: ❌ 诊断引擎异常: {str(e)}\n\n'
+            # 补齐异常情况下的 DONE 信号
+            yield f'data: [DONE]\n\n'
 
     def add_new_disease(self, disease_name: str, symptom: str, treatment: str) -> bool:
         """知识入库双写编排"""

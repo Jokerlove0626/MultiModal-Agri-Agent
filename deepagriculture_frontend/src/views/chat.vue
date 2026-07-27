@@ -15,18 +15,13 @@ marked.setOptions({
 function parseStreamingMarkdown(text) {
   if (!text) return "";
   
-  let processedText = text;
+  // 💥 终极修复：把后端传过来的明文 "\\n" (两个字符) 还原成真正的正则换行符！
+  let processedText = text.replace(/\\n/g, '\n');
 
   // ==========================================
-  // 📍 新增：强行修复标题格式 (解决 # ## ### 后无空格问题)
+  // 📍 强行修复标题格式 (解决 # ## ### 后无空格问题)
   // ==========================================
-  // 正则解析：
-  // (^|\n)   -> 匹配行首或换行符
-  // (#{1,6}) -> 匹配 1 到 6 个 # 号
-  // ([^\s#]) -> 匹配后面紧跟的非空格、非#字符（即粘在一起的内容）
-  // 替换为：$1$2\u3000$3 -> 原样保留前缀，中间插入全角空格
   processedText = processedText.replace(/(^|\n)(#{1,6})([^\s#])/g, '$1$2\u3000$3');
-
 
   // 1. 智能修复：未闭合的代码块
   const codeBlockCount = (processedText.match(/```/g) || []).length;
@@ -46,7 +41,6 @@ function parseStreamingMarkdown(text) {
   // 4. 净化 HTML
   return DOMPurify.sanitize(rawHtml);
 }
-
 
 // ==========================================
 // 📍 多会话管理与本地持久化逻辑
